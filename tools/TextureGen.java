@@ -27,6 +27,7 @@ public class TextureGen {
         assets = project.resolve("common/src/main/resources/assets/stellarodyssey");
         alienOre();
         oxygenTank();
+        spacesuit();
         icon();
         System.out.println("Textures written to " + assets);
     }
@@ -141,6 +142,208 @@ public class TextureGen {
         outline(base, outline);
         write(base, "textures/item/oxygen_tank.png");
         write(glow, "textures/item/oxygen_tank_emissive.png");
+    }
+
+    // ------------------------------------------------------------------------------------
+    //  Modular Spacesuit: High-tech astronaut gear with emissive visor & manifold
+    // ------------------------------------------------------------------------------------
+    static void spacesuit() throws IOException {
+        spacesuitHelmet();
+        spacesuitChestplate();
+        spacesuitLeggings();
+        spacesuitBoots();
+        spacesuitEntityArmor();
+    }
+
+    static void spacesuitHelmet() throws IOException {
+        BufferedImage base = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage glow = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        int[] whiteSuit = {0xFFFFFFFF, 0xFFE2E7EE, 0xFFBAC2CD, 0xFF8A93A0};
+        int darkTrim = 0xFF2A2E39;
+        int visorDark = 0xFF00363A;
+
+        // Helmet shell: rows 2..13, cols 3..12
+        for (int y = 2; y <= 13; y++) {
+            for (int x = 3; x <= 12; x++) {
+                if ((y == 2 && (x <= 4 || x >= 11)) || (y == 13 && (x <= 4 || x >= 11))) continue;
+                int shade = (x == 3 || x == 12 || y == 2) ? 1 : (y == 13 ? 3 : 0);
+                base.setRGB(x, y, whiteSuit[shade]);
+            }
+        }
+        // Visor cutout (rows 5..9, cols 5..10)
+        for (int y = 5; y <= 9; y++) {
+            for (int x = 5; x <= 10; x++) {
+                base.setRGB(x, y, visorDark);
+                glow.setRGB(x, y, (x == 5 || y == 5) ? 0xFFE0F7FA : 0xFF00E5FF);
+            }
+        }
+        // Chin breather vent
+        for (int x = 6; x <= 9; x++) {
+            base.setRGB(x, 11, darkTrim);
+        }
+        outline(base, darkTrim);
+        write(base, "textures/item/spacesuit_helmet.png");
+        write(glow, "textures/item/spacesuit_helmet_emissive.png");
+    }
+
+    static void spacesuitChestplate() throws IOException {
+        BufferedImage base = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage glow = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        int[] whiteSuit = {0xFFFFFFFF, 0xFFE2E7EE, 0xFFBAC2CD, 0xFF8A93A0};
+        int darkTrim = 0xFF2A2E39;
+        int cyanGlow = 0xFF00E5FF;
+
+        // Shoulders & Chest
+        for (int y = 2; y <= 13; y++) {
+            for (int x = 2; x <= 13; x++) {
+                if (y <= 4 && (x >= 6 && x <= 9)) continue; // Neck opening
+                if (y >= 8 && (x <= 3 || x >= 12)) continue; // Arm openings
+                int shade = (y == 13 || x == 2 || x == 13) ? 2 : 1;
+                base.setRGB(x, y, whiteSuit[shade]);
+            }
+        }
+        // Oxygen Manifold chest connection & HUD status indicator (rows 6..7, cols 7..8)
+        base.setRGB(7, 6, cyanGlow);
+        base.setRGB(8, 6, cyanGlow);
+        base.setRGB(7, 7, cyanGlow);
+        base.setRGB(8, 7, 0xFFE0F7FA);
+        glow.setRGB(7, 6, cyanGlow);
+        glow.setRGB(8, 6, cyanGlow);
+        glow.setRGB(7, 7, cyanGlow);
+        glow.setRGB(8, 7, 0xFFE0F7FA);
+
+        // Utility belt
+        for (int x = 4; x <= 11; x++) {
+            base.setRGB(x, 12, darkTrim);
+        }
+        outline(base, darkTrim);
+        write(base, "textures/item/spacesuit_chestplate.png");
+        write(glow, "textures/item/spacesuit_chestplate_emissive.png");
+    }
+
+    static void spacesuitLeggings() throws IOException {
+        BufferedImage base = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        int[] whiteSuit = {0xFFFFFFFF, 0xFFE2E7EE, 0xFFBAC2CD, 0xFF8A93A0};
+        int darkTrim = 0xFF2A2E39;
+
+        // Waist
+        for (int y = 2; y <= 4; y++) {
+            for (int x = 3; x <= 12; x++) {
+                base.setRGB(x, y, whiteSuit[1]);
+            }
+        }
+        // Legs (cols 3..6 and cols 9..12)
+        for (int y = 5; y <= 13; y++) {
+            for (int x = 3; x <= 6; x++) base.setRGB(x, y, whiteSuit[2]);
+            for (int x = 9; x <= 12; x++) base.setRGB(x, y, whiteSuit[2]);
+        }
+        // Knee armor pads
+        for (int x = 4; x <= 5; x++) base.setRGB(x, 8, darkTrim);
+        for (int x = 10; x <= 11; x++) base.setRGB(x, 8, darkTrim);
+
+        outline(base, darkTrim);
+        write(base, "textures/item/spacesuit_leggings.png");
+    }
+
+    static void spacesuitBoots() throws IOException {
+        BufferedImage base = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage glow = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        int[] whiteSuit = {0xFFFFFFFF, 0xFFE2E7EE, 0xFFBAC2CD, 0xFF8A93A0};
+        int darkTrim = 0xFF2A2E39;
+        int cyanGlow = 0xFF00E5FF;
+
+        // Left & Right boots
+        for (int y = 7; y <= 13; y++) {
+            for (int x = 2; x <= 6; x++) {
+                if (y == 7 && x == 2) continue;
+                base.setRGB(x, y, whiteSuit[1]);
+            }
+            for (int x = 9; x <= 13; x++) {
+                if (y == 7 && x == 13) continue;
+                base.setRGB(x, y, whiteSuit[1]);
+            }
+        }
+        // Heavy reinforced soles
+        for (int x = 2; x <= 6; x++) base.setRGB(x, 13, darkTrim);
+        for (int x = 9; x <= 13; x++) base.setRGB(x, 13, darkTrim);
+
+        // Micro-thruster exhaust ports (lateral)
+        base.setRGB(2, 10, cyanGlow);
+        glow.setRGB(2, 10, cyanGlow);
+        base.setRGB(13, 10, cyanGlow);
+        glow.setRGB(13, 10, cyanGlow);
+
+        outline(base, darkTrim);
+        write(base, "textures/item/spacesuit_boots.png");
+        write(glow, "textures/item/spacesuit_boots_emissive.png");
+    }
+
+    static void spacesuitEntityArmor() throws IOException {
+        // Humanoid (Layer 1: Helmet, Chestplate, Boots)
+        BufferedImage l1 = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage l1Glow = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+        // Humanoid Leggings (Layer 2)
+        BufferedImage l2 = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+
+        int suitColor = 0xFFE2E7EE;
+        int suitDark = 0xFF8A93A0;
+        int trimColor = 0xFF2A2E39;
+        int visorColor = 0xFF00E5FF;
+
+        // Fill head (0..32, 0..16)
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 32; x++) {
+                l1.setRGB(x, y, (x % 4 == 0 || y % 4 == 0) ? suitDark : suitColor);
+            }
+        }
+        // Visor on head front face: x: 8..16, y: 8..16
+        for (int y = 9; y <= 14; y++) {
+            for (int x = 9; x <= 14; x++) {
+                l1.setRGB(x, y, 0xFF00363A);
+                l1Glow.setRGB(x, y, visorColor);
+            }
+        }
+
+        // Chest body (16..40, 16..32)
+        for (int y = 16; y < 32; y++) {
+            for (int x = 16; x < 40; x++) {
+                l1.setRGB(x, y, suitColor);
+            }
+        }
+        // Chest LED indicator on front (20..28, 20..32)
+        l1.setRGB(24, 22, visorColor);
+        l1Glow.setRGB(24, 22, visorColor);
+
+        // Arms (40..56, 16..32) and (32..48, 48..64)
+        for (int y = 16; y < 32; y++) {
+            for (int x = 40; x < 56; x++) {
+                l1.setRGB(x, y, suitColor);
+            }
+        }
+        for (int y = 48; y < 64; y++) {
+            for (int x = 32; x < 48; x++) {
+                l1.setRGB(x, y, suitColor);
+            }
+        }
+
+        // Boots: feet areas on layer 1
+        for (int y = 26; y < 32; y++) {
+            for (int x = 0; x < 16; x++) l1.setRGB(x, y, trimColor);
+            for (int x = 16; x < 32; x++) l1.setRGB(x, y, trimColor);
+        }
+
+        // Leggings (Layer 2)
+        for (int y = 16; y < 32; y++) {
+            for (int x = 16; x < 40; x++) l2.setRGB(x, y, suitColor);
+            for (int x = 0; x < 16; x++) l2.setRGB(x, y, suitDark);
+        }
+        for (int y = 48; y < 64; y++) {
+            for (int x = 16; x < 32; x++) l2.setRGB(x, y, suitDark);
+        }
+
+        write(l1, "textures/entity/equipment/humanoid/spacesuit.png");
+        write(l1Glow, "textures/entity/equipment/humanoid/spacesuit_emissive.png");
+        write(l2, "textures/entity/equipment/humanoid_leggings/spacesuit.png");
     }
 
     // ------------------------------------------------------------------------------------

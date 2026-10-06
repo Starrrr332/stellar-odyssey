@@ -12,8 +12,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Manages life support logic: checks atmospheric conditions, consumes oxygen from
- * carried tanks, deals asphyxiation damage when depleted, and syncs status to clients.
+ * Manages life support logic: checks atmospheric conditions and spacesuit seal,
+ * consumes oxygen from carried tanks, deals decompression/asphyxiation damage,
+ * and synchronises status to clients.
  */
 public final class LifeSupportManager {
     private LifeSupportManager() {
@@ -29,7 +30,9 @@ public final class LifeSupportManager {
         }
 
         boolean creative = player.isCreative() || player.isSpectator();
+        boolean inVacuum = AtmosphereHelper.isVacuumEnvironment(player);
         boolean inHazard = AtmosphereHelper.lacksOxygen(player);
+        boolean suitSealed = AtmosphereHelper.isFullSuitEquipped(player);
 
         Inventory inv = player.getInventory();
         int totalOxygen = 0;
@@ -51,16 +54,21 @@ public final class LifeSupportManager {
         if (!creative && inHazard) {
             // Once every second (20 game ticks)
             if (player.tickCount % 20 == 0) {
-                if (!firstAvailableTank.isEmpty()) {
+                ServerLevel serverLevel = (ServerLevel) player.level();
+
+                if (inVacuum && !suitSealed) {
+                    // Hard vacuum breach: decompression damage regardless of oxygen supply
+                    player.hurtServer(serverLevel, serverLevel.damageSources().drown(), 3.0F);
+                    player.setAirSupply(-20);
+                } else if (!firstAvailableTank.isEmpty()) {
+                    // Sealed suit or emergency rebreather with active oxygen
                     OxygenTankItem.drain(firstAvailableTank, 1);
                     totalOxygen = Math.max(0, totalOxygen - 1);
-                    // Prevent vanilla drowning if player is underwater using tanks as rebreathers
                     player.setAirSupply(player.getMaxAirSupply());
                 } else {
-                    // Depleted / no tanks: asphyxiation damage
+                    // Depleted / unsupplied: asphyxiation damage
                     int currentAir = player.getAirSupply() - 15;
                     if (currentAir <= -20) {
-                        ServerLevel serverLevel = (ServerLevel) player.level();
                         player.hurtServer(serverLevel, serverLevel.damageSources().drown(), 2.0F);
                         currentAir = 0;
                     }

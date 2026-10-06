@@ -2,6 +2,19 @@
   "itemGroup.stellarodyssey.main": "Stellar Odyssey",
   "block.stellarodyssey.alien_ore": "Alien Ore",
   "item.stellarodyssey.oxygen_tank": "Oxygen Tank",
+  "item.stellarodyssey.spacesuit_helmet": "Spacesuit Helmet",
+  "item.stellarodyssey.spacesuit_chestplate": "Spacesuit Chestplate",
+  "item.stellarodyssey.spacesuit_leggings": "Spacesuit Leggings",
+  "item.stellarodyssey.spacesuit_boots": "Spacesuit Boots",
   "tooltip.stellarodyssey.oxygen": "Oxygen: %s / %s units",
-  "tooltip.stellarodyssey.alien_ore": "Radiates an unknown crystalline energy."
+  "tooltip.stellarodyssey.alien_ore": "Radiates an unknown crystalline energy.",
+  "tooltip.stellarodyssey.spacesuit_helmet.desc": "Pressurized Visor & Environmental Scanner",
+  "tooltip.stellarodyssey.spacesuit_helmet.sub": "Displays life support telemetry and seals head unit.",
+  "tooltip.stellarodyssey.spacesuit_chestplate.desc": "Oxygen Manifold & Atmospheric Regulator",
+  "tooltip.stellarodyssey.spacesuit_chestplate.sub": "Distributes carried O2 tanks across the suit.",
+  "tooltip.stellarodyssey.spacesuit_leggings.desc": "Thermal & Radiation Plating",
+  "tooltip.stellarodyssey.spacesuit_leggings.sub": "Deflects cosmic ray hazards and extreme thermal flux.",
+  "tooltip.stellarodyssey.spacesuit_boots.desc": "Gravitational Dampeners & Micro-Thrusters",
+  "tooltip.stellarodyssey.spacesuit_boots.sub": "Absorbs crater impacts and stabilizes low-gravity falls.",
+  "tooltip.stellarodyssey.spacesuit_set_bonus": "◆ Full Set: Hermetic Seal (Vacuum & Decompression Protection)"
 }

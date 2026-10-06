@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stellarodyssey:item/spacesuit_boots",
+    "layer1": "stellarodyssey:item/spacesuit_boots_emissive"
+  }
+}

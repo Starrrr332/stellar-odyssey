@@ -1,6 +1,7 @@
 package com.amaro.stellarodyssey.client.gui;
 
 import com.amaro.stellarodyssey.client.ClientOxygenData;
+import com.amaro.stellarodyssey.lifesupport.AtmosphereHelper;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -24,9 +25,10 @@ public final class OxygenHudOverlay {
         int oxygen = ClientOxygenData.getOxygen();
         int maxOxygen = ClientOxygenData.getMaxOxygen();
         boolean inHazard = ClientOxygenData.isInHazard();
+        boolean suitSealed = AtmosphereHelper.isFullSuitEquipped(mc.player);
 
-        // Only show if the player carries oxygen tanks or is actively in an unbreathable environment
-        if (maxOxygen <= 0 && !inHazard) {
+        // Only show if the player carries oxygen tanks, wears suit, or is actively in a hazard
+        if (maxOxygen <= 0 && !inHazard && !suitSealed) {
             return;
         }
 
@@ -94,11 +96,20 @@ public final class OxygenHudOverlay {
             gui.fill(barX, barY, barX + filledWidth, barY + 1, 0x80FFFFFF);
         }
 
-        // 5. Environmental hazard alert banner (when in vacuum or underwater)
+        // 5. Environmental hazard & suit alert banner
         if (inHazard) {
-            String hazardLabel = oxygen > 0 ? "● HAZARD ACTIVE" : "⚠ SUFFOCATING";
-            int hazardColor = oxygen > 0 ? 0xFF00E5FF : (pulse ? 0xFFFF1744 : 0xFFFFFFFF);
-            gui.text(font, Component.literal(hazardLabel), x + 6, y + height + 3, hazardColor);
+            boolean inVacuum = AtmosphereHelper.isVacuumEnvironment(mc.player);
+            if (inVacuum && !suitSealed) {
+                String breachLabel = "⚠ SUIT UNSEALED / BREACH";
+                int breachColor = pulse ? 0xFFFF1744 : 0xFFFFFFFF;
+                gui.text(font, Component.literal(breachLabel), x + 6, y + height + 3, breachColor);
+            } else {
+                String hazardLabel = oxygen > 0 ? "● HAZARD ACTIVE" : "⚠ SUFFOCATING";
+                int hazardColor = oxygen > 0 ? 0xFF00E5FF : (pulse ? 0xFFFF1744 : 0xFFFFFFFF);
+                gui.text(font, Component.literal(hazardLabel), x + 6, y + height + 3, hazardColor);
+            }
+        } else if (suitSealed) {
+            gui.text(font, Component.literal("● SUIT SEALED [NOMINAL]"), x + 6, y + height + 3, 0xFF4DD0E1);
         }
     }
 }

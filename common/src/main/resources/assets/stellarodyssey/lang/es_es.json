@@ -2,6 +2,19 @@
   "itemGroup.stellarodyssey.main": "Stellar Odyssey",
   "block.stellarodyssey.alien_ore": "Mineral Alienígena",
   "item.stellarodyssey.oxygen_tank": "Tanque de Oxígeno",
+  "item.stellarodyssey.spacesuit_helmet": "Casco de Traje Espacial",
+  "item.stellarodyssey.spacesuit_chestplate": "Pechera de Traje Espacial",
+  "item.stellarodyssey.spacesuit_leggings": "Grebas de Traje Espacial",
+  "item.stellarodyssey.spacesuit_boots": "Botas de Traje Espacial",
   "tooltip.stellarodyssey.oxygen": "Oxígeno: %s / %s unidades",
-  "tooltip.stellarodyssey.alien_ore": "Irradia una energía cristalina desconocida."
+  "tooltip.stellarodyssey.alien_ore": "Irradia una energía cristalina desconocida.",
+  "tooltip.stellarodyssey.spacesuit_helmet.desc": "Visor Presurizado y Escáner Ambiental",
+  "tooltip.stellarodyssey.spacesuit_helmet.sub": "Muestra telemetría de soporte vital y sella la cabeza.",
+  "tooltip.stellarodyssey.spacesuit_chestplate.desc": "Colector de Oxígeno y Regulador Atmosférico",
+  "tooltip.stellarodyssey.spacesuit_chestplate.sub": "Distribuye tanques de O₂ por los circuitos del traje.",
+  "tooltip.stellarodyssey.spacesuit_leggings.desc": "Blindaje Térmico y Contra Radiación",
+  "tooltip.stellarodyssey.spacesuit_leggings.sub": "Desvía rayos cósmicos y variaciones térmicas extremas.",
+  "tooltip.stellarodyssey.spacesuit_boots.desc": "Amortiguadores Gravitacionales y Micropropulsores",
+  "tooltip.stellarodyssey.spacesuit_boots.sub": "Absorbe impactos de cráteres y estabiliza caídas en baja gravedad.",
+  "tooltip.stellarodyssey.spacesuit_set_bonus": "◆ Conjunto Completo: Sellado Hermético (Protección contra Vacío y Descompresión)"
 }

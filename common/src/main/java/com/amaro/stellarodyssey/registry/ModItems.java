@@ -2,6 +2,7 @@ package com.amaro.stellarodyssey.registry;
 
 import com.amaro.stellarodyssey.StellarOdyssey;
 import com.amaro.stellarodyssey.item.OxygenTankItem;
+import com.amaro.stellarodyssey.item.SpacesuitItem;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
@@ -9,6 +10,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.equipment.ArmorType;
 
 import java.util.function.Function;
 
@@ -27,6 +29,23 @@ public final class ModItems {
             new Item.Properties()
                     .durability(OxygenTankItem.CAPACITY)
                     .rarity(Rarity.UNCOMMON));
+
+    // --- Modular Spacesuit -------------------------------------------------------------------
+    public static final RegistrySupplier<SpacesuitItem> SPACESUIT_HELMET = register("spacesuit_helmet",
+            props -> new SpacesuitItem(ArmorType.HELMET, props),
+            new Item.Properties().rarity(Rarity.RARE));
+
+    public static final RegistrySupplier<SpacesuitItem> SPACESUIT_CHESTPLATE = register("spacesuit_chestplate",
+            props -> new SpacesuitItem(ArmorType.CHESTPLATE, props),
+            new Item.Properties().rarity(Rarity.RARE));
+
+    public static final RegistrySupplier<SpacesuitItem> SPACESUIT_LEGGINGS = register("spacesuit_leggings",
+            props -> new SpacesuitItem(ArmorType.LEGGINGS, props),
+            new Item.Properties().rarity(Rarity.RARE));
+
+    public static final RegistrySupplier<SpacesuitItem> SPACESUIT_BOOTS = register("spacesuit_boots",
+            props -> new SpacesuitItem(ArmorType.BOOTS, props),
+            new Item.Properties().rarity(Rarity.RARE));
 
     private ModItems() {
     }
