@@ -31,6 +31,7 @@ Coordinate and monitor project execution and independent victory audit for Stell
 
 ## Artifact Index
 - c:/Users/amaro/Documents/antigravity/blissful-lavoisier/.agents/teamwork/ORIGINAL_REQUEST.md — Authoritative user requests
+- .agents/teamwork/worker_build_install_9/ — Task: rebuild jar (fix worldgen/feature 26.3) + install into Prism instance (model: Gemini)
 - Task 170fba22-fb79-4847-b431-216fb9311390/task-24 — Cron 1: Progress Reporting (*/8 * * * *)
 - Task 170fba22-fb79-4847-b431-216fb9311390/task-26 — Cron 2: Liveness Check (*/10 * * * *)
 - Orchestrator conversation ID: e6da9734-df75-4020-bdcc-13a0f39aae07

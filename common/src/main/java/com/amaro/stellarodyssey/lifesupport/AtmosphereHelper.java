@@ -5,6 +5,7 @@ import com.amaro.stellarodyssey.api.celestial.ICelestialBody;
 import com.amaro.stellarodyssey.block.entity.OxygenSealerBlockEntity;
 import com.amaro.stellarodyssey.item.SpacesuitItem;
 import com.amaro.stellarodyssey.world.CelestialBodyRegistry;
+import dev.architectury.event.events.common.LifecycleEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -39,6 +40,14 @@ public final class AtmosphereHelper {
 
     /** Active oxygen sealers indexed by level dimension key. */
     private static final Map<ResourceKey<Level>, Set<OxygenSealerBlockEntity>> ACTIVE_SEALERS = new ConcurrentHashMap<>();
+
+    static {
+        try {
+            LifecycleEvent.SERVER_STOPPING.register(server -> clearSealers());
+        } catch (Throwable ignored) {
+            // Safely ignored in environments where Architectury lifecycle events are not active
+        }
+    }
 
     private AtmosphereHelper() {
     }
@@ -104,11 +113,17 @@ public final class AtmosphereHelper {
      * Checks if the player is in open space, orbit, or an unpressurized vacuum environment (<0.05 atm).
      */
     public static boolean isVacuumEnvironment(Player player) {
+        if (player == null) {
+            return false;
+        }
         Level level = player.level();
+        if (level == null) {
+            return false;
+        }
         BlockPos pos = player.blockPosition();
 
         // 1. Inside an active sealed room: artificial pressurized air protects against vacuum
-        if (isRoomSealed(level, pos)) {
+        if (pos != null && isRoomSealed(level, pos)) {
             return false;
         }
 
@@ -117,34 +132,49 @@ public final class AtmosphereHelper {
             return true;
         }
 
-        // 3. Vacuum dimension type tag
-        if (level.dimensionTypeRegistration().is(VACUUM_DIMENSIONS)) {
-            return true;
-        }
-
-        // 4. Charted celestial bodies: only < 0.05 atm is hard vacuum (e.g. Nexus Moon).
+        // 3. Charted celestial bodies take precedence: only < 0.05 atm is hard vacuum (e.g. Nexus Moon).
+        // This ensures charted exoplanets like Exotic Prime (0.85 atm) and Proxima B (0.15 atm) are
+        // treated as toxic/unbreathable exoplanetary atmospheres rather than hard vacuum.
         Optional<ICelestialBody> body = CelestialBodyRegistry.getInstance().getBody(level.dimension());
         if (body.isPresent()) {
             return body.get().isVacuum();
         }
 
+        // 4. Fallback for uncharted dimensions: vacuum dimension type tag
+        try {
+            if (level.dimensionTypeRegistration() != null && level.dimensionTypeRegistration().is(VACUUM_DIMENSIONS)) {
+                return true;
+            }
+        } catch (Exception ignored) {
+            // Guard against uninitialized registries in headless unit tests
+        }
+
         // 5. Uncharted mod dimensions fall back to namespace heuristic.
-        return level.dimension().identifier().getNamespace().equals(StellarOdyssey.MOD_ID);
+        if (level.dimension() != null && level.dimension().identifier() != null) {
+            return level.dimension().identifier().getNamespace().equals(StellarOdyssey.MOD_ID);
+        }
+        return false;
     }
 
     /**
      * Checks if the local atmosphere cannot be breathed unaided (e.g. Exotic Prime's toxic 0.85 atm shroud).
      */
     public static boolean isUnbreathableAtmosphere(Player player) {
+        if (player == null) {
+            return false;
+        }
         Level level = player.level();
+        if (level == null) {
+            return false;
+        }
         BlockPos pos = player.blockPosition();
 
-        if (isRoomSealed(level, pos)) {
+        if (pos != null && isRoomSealed(level, pos)) {
             return false;
         }
 
         return CelestialBodyRegistry.getInstance().getBody(level.dimension())
-                .map(body -> !body.hasBreathableAtmosphere())
+                .map(body -> !body.hasBreathableAtmosphere() && !body.isVacuum())
                 .orElse(false);
     }
 

@@ -34,6 +34,8 @@ public class TextureGen {
         spacesuit();
         starship();
         rocket();
+        rocketTier2();
+        rocketTier3();
         rocketItems();
         machineBlocks();
         assemblyTableGui();
@@ -1038,6 +1040,296 @@ public class TextureGen {
         });
 
         write(img, "textures/entity/rocket/rocket.png");
+        write(img, "textures/entity/rocket_t1.png");
+    }
+
+    // ------------------------------------------------------------------------------------
+    //  Rocket Tier 2 (Voyager) entity texture (128x128) - Celidium amber alloy & emissive
+    // ------------------------------------------------------------------------------------
+    static void rocketTier2() throws IOException {
+        BufferedImage base = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage glow = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+
+        int hullDark = 0xFF1E293B;
+        int hullMid = 0xFF334155;
+        int hullSlate = 0xFF475569;
+        int hullWhite = 0xFFCBD5E1;
+        int celidiumMain = 0xFFD97724;
+        int celidiumLight = 0xFFFBBF77;
+        int celidiumDark = 0xFF92400E;
+        int celidiumGlow = 0xFFFBBF77;
+        int celidiumCoreGlow = 0xFFFED7AA;
+        int flameGlow = 0xFFFF8A2A;
+        int flameCore = 0xFFFFD54F;
+
+        // Fuselage: texOffs(0,0) 14x26x14
+        paintCube(base, glow, 0, 0, 14, 26, 14, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean panel = (x % 4 == 0) || (y % 4 == 0);
+                    boolean amberStripe = (y >= 6 && y <= 8) || (y >= 18 && y <= 20);
+                    int c = panel ? hullDark : (amberStripe ? celidiumMain : ((x + y) % 8 < 4 ? hullWhite : hullMid));
+                    if (face.equals("bottom")) c = panel ? hullDark : hullSlate;
+                    b.setRGB(x0 + x, y0 + y, c);
+                }
+            }
+            // Celidium plating circuit lines on front & sides
+            if (!face.equals("top") && !face.equals("bottom")) {
+                for (int y = 10; y <= 16; y++) {
+                    int x = w / 2;
+                    b.setRGB(x0 + x, y0 + y, celidiumLight);
+                    g.setRGB(x0 + x, y0 + y, celidiumGlow);
+                }
+            }
+        });
+
+        // Stepped nose cone: texOffs(0,40) 10x10x10
+        paintCube(base, glow, 0, 40, 10, 10, 10, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean edge = x == 0 || x == w - 1 || y == 0 || y == h - 1;
+                    b.setRGB(x0 + x, y0 + y, edge ? celidiumDark : celidiumMain);
+                }
+            }
+            if (face.equals("front") || face.equals("top")) {
+                for (int x = 2; x <= w - 3; x++) {
+                    for (int y = 2; y <= h - 3; y++) {
+                        b.setRGB(x0 + x, y0 + y, celidiumLight);
+                        g.setRGB(x0 + x, y0 + y, celidiumGlow);
+                    }
+                }
+            }
+        });
+
+        // Nose cap: texOffs(0,60) 4x4x4
+        paintCube(base, glow, 0, 60, 4, 4, 4, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    b.setRGB(x0 + x, y0 + y, celidiumLight);
+                    g.setRGB(x0 + x, y0 + y, celidiumCoreGlow);
+                }
+            }
+        });
+
+        // Vertical Celidium energy conduit ribs (front/back: 2x22x1 at texOffs(24,60))
+        paintCube(base, glow, 24, 60, 2, 22, 1, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    b.setRGB(x0 + x, y0 + y, celidiumLight);
+                    g.setRGB(x0 + x, y0 + y, (y % 3 == 0) ? celidiumCoreGlow : celidiumGlow);
+                }
+            }
+        });
+
+        // Vertical Celidium energy conduit ribs (lateral: 1x22x2 at texOffs(30,60))
+        paintCube(base, glow, 30, 60, 1, 22, 2, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    b.setRGB(x0 + x, y0 + y, celidiumLight);
+                    g.setRGB(x0 + x, y0 + y, (y % 3 == 0) ? celidiumCoreGlow : celidiumGlow);
+                }
+            }
+        });
+
+        // Auxiliary side booster pods: 6x18x6 at texOffs(56,0)
+        paintCube(base, glow, 56, 0, 6, 18, 6, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean edge = x == 0 || x == w - 1;
+                    int c = edge ? celidiumDark : ((y % 4 == 0) ? celidiumMain : hullWhite);
+                    if (face.equals("bottom")) c = hullDark;
+                    b.setRGB(x0 + x, y0 + y, c);
+                }
+            }
+            // Vertical booster conduit
+            for (int y = 3; y < h - 3; y++) {
+                int x = w / 2;
+                b.setRGB(x0 + x, y0 + y, celidiumLight);
+                g.setRGB(x0 + x, y0 + y, celidiumGlow);
+            }
+        });
+
+        // Booster nose cones: 4x4x4 at texOffs(56,24)
+        paintCube(base, glow, 56, 24, 4, 4, 4, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    b.setRGB(x0 + x, y0 + y, celidiumMain);
+                }
+            }
+        });
+
+        // Dual heavy vector engine nozzles: 4x4x4 at texOffs(80,0)
+        paintCube(base, glow, 80, 0, 4, 4, 4, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean edge = x == 0 || x == w - 1 || y == 0 || y == h - 1;
+                    b.setRGB(x0 + x, y0 + y, edge ? hullDark : hullSlate);
+                }
+            }
+            if (face.equals("bottom")) {
+                // Exhaust nozzle flame glow
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        boolean core = (x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2);
+                        g.setRGB(x0 + x, y0 + y, core ? flameCore : flameGlow);
+                    }
+                }
+            }
+        });
+
+        // Fins: 2x14x6 at texOffs(40,40)
+        paintCube(base, glow, 40, 40, 2, 14, 6, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean edge = x == 0 || x == w - 1 || y == 0 || y == h - 1;
+                    b.setRGB(x0 + x, y0 + y, edge ? celidiumDark : celidiumMain);
+                }
+            }
+        });
+
+        write(base, "textures/entity/rocket_t2.png");
+        write(glow, "textures/entity/rocket_t2_emissive.png");
+    }
+
+    // ------------------------------------------------------------------------------------
+    //  Rocket Tier 3 (Odyssey) entity texture (128x128) - Astralite cyan & Verdantite emerald
+    // ------------------------------------------------------------------------------------
+    static void rocketTier3() throws IOException {
+        BufferedImage base = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage glow = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+
+        int hullDark = 0xFF0F172A;
+        int hullMid = 0xFF1E293B;
+        int hullSlate = 0xFF334155;
+        int hullWhite = 0xFFF8FAFC;
+
+        int astraliteMain = 0xFF06B6D4;
+        int astraliteLight = 0xFFA5F3FC;
+        int astraliteDark = 0xFF164E63;
+        int astraliteGlow = 0xFFA5F3FC;
+
+        int verdantiteMain = 0xFF22C55E;
+        int verdantiteLight = 0xFF86EFAC;
+        int verdantiteDark = 0xFF14532D;
+        int verdantiteGlow = 0xFF86EFAC;
+
+        int plasmaCyan = 0xFF00E5FF;
+        int plasmaWhite = 0xFFE0F7FA;
+        int bridgeHolo = 0xFF00838F;
+
+        // Command fuselage: texOffs(0,0) 16x28x16
+        paintCube(base, glow, 0, 0, 16, 28, 16, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean panel = (x % 4 == 0) || (y % 4 == 0);
+                    int c = panel ? hullDark : ((x + y) % 8 < 4 ? hullWhite : hullSlate);
+                    if (face.equals("bottom")) c = panel ? hullDark : hullSlate;
+                    b.setRGB(x0 + x, y0 + y, c);
+                }
+            }
+            // Verdantite power bus circuitry running along hull
+            if (!face.equals("top") && !face.equals("bottom")) {
+                for (int y = 4; y < h - 4; y += 2) {
+                    int x1 = 3, x2 = w - 4;
+                    b.setRGB(x0 + x1, y0 + y, verdantiteLight);
+                    g.setRGB(x0 + x1, y0 + y, verdantiteGlow);
+                    b.setRGB(x0 + x2, y0 + y, verdantiteLight);
+                    g.setRGB(x0 + x2, y0 + y, verdantiteGlow);
+                }
+            }
+        });
+
+        // Hyperdrive focal dome: texOffs(0,44) 12x10x12
+        paintCube(base, glow, 0, 44, 12, 10, 12, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean edge = x == 0 || x == w - 1 || y == 0 || y == h - 1;
+                    b.setRGB(x0 + x, y0 + y, edge ? astraliteDark : astraliteMain);
+                }
+            }
+            // Glowing focal rings
+            for (int y = 2; y <= h - 3; y++) {
+                for (int x = 2; x <= w - 3; x++) {
+                    if ((x + y) % 3 == 0) {
+                        b.setRGB(x0 + x, y0 + y, astraliteLight);
+                        g.setRGB(x0 + x, y0 + y, astraliteGlow);
+                    }
+                }
+            }
+        });
+
+        // Focal emitter crystal: texOffs(0,66) 6x6x6
+        paintCube(base, glow, 0, 66, 6, 6, 6, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    b.setRGB(x0 + x, y0 + y, astraliteLight);
+                    g.setRGB(x0 + x, y0 + y, plasmaWhite);
+                }
+            }
+        });
+
+        // Panoramic bridge cupola: texOffs(48,44) 8x4x2
+        paintCube(base, glow, 48, 44, 8, 4, 2, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean edge = x == 0 || x == w - 1 || y == 0 || y == h - 1;
+                    b.setRGB(x0 + x, y0 + y, edge ? hullDark : bridgeHolo);
+                    if (!edge) {
+                        g.setRGB(x0 + x, y0 + y, plasmaCyan);
+                    }
+                }
+            }
+        });
+
+        // Quad radial outboard warp nacelles: 6x22x6 at texOffs(64,0)
+        paintCube(base, glow, 64, 0, 6, 22, 6, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean edge = x == 0 || x == w - 1;
+                    b.setRGB(x0 + x, y0 + y, edge ? astraliteDark : hullMid);
+                }
+            }
+            // Hyperdrive field coils (horizontal cyan glowing rings)
+            for (int y = 3; y < h - 3; y += 4) {
+                for (int x = 1; x < w - 1; x++) {
+                    b.setRGB(x0 + x, y0 + y, astraliteLight);
+                    g.setRGB(x0 + x, y0 + y, astraliteGlow);
+                }
+            }
+        });
+
+        // Astralite crystalline radiator wings: 1x16x8 at texOffs(88,0)
+        paintCube(base, glow, 88, 0, 1, 16, 8, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean edge = x == 0 || x == w - 1 || y == 0 || y == h - 1;
+                    b.setRGB(x0 + x, y0 + y, edge ? astraliteMain : astraliteLight);
+                    g.setRGB(x0 + x, y0 + y, astraliteGlow);
+                }
+            }
+        });
+
+        // Tri-engine heavy ion bells: 5x4x5 at texOffs(64,28)
+        paintCube(base, glow, 64, 28, 5, 4, 5, (b, g, face, x0, y0, w, h) -> {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    boolean edge = x == 0 || x == w - 1 || y == 0 || y == h - 1;
+                    b.setRGB(x0 + x, y0 + y, edge ? hullDark : hullSlate);
+                }
+            }
+            if (face.equals("bottom")) {
+                // High-energy ion exhaust glow
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        boolean core = (x >= 1 && x <= w - 2 && y >= 1 && y <= h - 2);
+                        g.setRGB(x0 + x, y0 + y, core ? plasmaWhite : plasmaCyan);
+                    }
+                }
+            }
+        });
+
+        write(base, "textures/entity/rocket_t3.png");
+        write(glow, "textures/entity/rocket_t3_emissive.png");
     }
 
     // ------------------------------------------------------------------------------------

@@ -4,6 +4,8 @@ import com.amaro.stellarodyssey.StellarOdyssey;
 import com.amaro.stellarodyssey.client.gui.LaunchCinematicOverlay;
 import com.amaro.stellarodyssey.client.gui.OxygenHudOverlay;
 import com.amaro.stellarodyssey.client.model.RocketModel;
+import com.amaro.stellarodyssey.client.model.RocketTier2Model;
+import com.amaro.stellarodyssey.client.model.RocketTier3Model;
 import com.amaro.stellarodyssey.client.model.StarshipModel;
 import com.amaro.stellarodyssey.client.renderer.RocketEntityRenderer;
 import com.amaro.stellarodyssey.client.renderer.StarshipEntityRenderer;
@@ -31,6 +33,8 @@ public final class StellarOdysseyClient {
         EntityRendererRegistry.register(ModEntities.STARSHIP, StarshipEntityRenderer::new);
 
         EntityModelLayerRegistry.register(RocketModel.LAYER_LOCATION, RocketModel::createBodyLayer);
+        EntityModelLayerRegistry.register(RocketTier2Model.LAYER_LOCATION, RocketTier2Model::createBodyLayer);
+        EntityModelLayerRegistry.register(RocketTier3Model.LAYER_LOCATION, RocketTier3Model::createBodyLayer);
         EntityRendererRegistry.register(ModEntities.ROCKET, RocketEntityRenderer::new);
 
         MenuScreenRegistry.registerScreenFactory(ModMenuTypes.ASSEMBLY_TABLE.get(), AssemblyTableScreen::new);

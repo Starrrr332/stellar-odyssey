@@ -1,10 +1,14 @@
 package com.amaro.stellarodyssey.world;
 
 import com.amaro.stellarodyssey.StellarOdyssey;
+import com.amaro.stellarodyssey.api.celestial.ICelestialBody;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
+import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.event.events.common.TickEvent;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -52,6 +56,11 @@ public final class PlanetaryGravityManager {
     public static void init() {
         TickEvent.PLAYER_POST.register(PlanetaryGravityManager::tickPlayer);
         EntityEvent.ADD.register(PlanetaryGravityManager::onEntityAdded);
+        try {
+            PlayerEvent.CHANGE_DIMENSION.register((player, oldDim, newDim) -> applyAdaptiveGravity(player));
+        } catch (Throwable ignored) {
+            // Guard against environments where PlayerEvent hooks differ
+        }
     }
 
     // --- Pure physics helpers (no game state, directly unit-testable) -----------------------
@@ -81,10 +90,49 @@ public final class PlanetaryGravityManager {
         if (level == null) {
             return 1.0;
         }
+        return resolveBodyGravityMultiplier(level.dimension());
+    }
+
+    /**
+     * Looks up the surface gravity multiplier of the celestial body for a given dimension key.
+     * Dimensions absent from the catalog default to standard {@code 1.0g}.
+     *
+     * @param dimensionKey The dimension resource key.
+     * @return The body gravity multiplier, or {@code 1.0} when the dimension is not charted.
+     */
+    public static double resolveBodyGravityMultiplier(ResourceKey<Level> dimensionKey) {
+        if (dimensionKey == null) {
+            return 1.0;
+        }
         return CelestialBodyRegistry.getInstance()
-                .getBody(level.dimension())
-                .map(body -> body.gravityMultiplier())
+                .getBody(dimensionKey)
+                .map(ICelestialBody::gravityMultiplier)
                 .orElse(1.0);
+    }
+
+    /**
+     * Gets the effective gravity multiplier for a level and world altitude.
+     */
+    public static double getGravityMultiplier(Level level, double y) {
+        return gravityMultiplierAt(y, resolveBodyGravityMultiplier(level));
+    }
+
+    /**
+     * Gets the effective gravity multiplier for a level and position.
+     */
+    public static double getGravityMultiplier(Level level, BlockPos pos) {
+        double y = pos != null ? pos.getY() : 0.0;
+        return getGravityMultiplier(level, y);
+    }
+
+    /**
+     * Gets the effective gravity multiplier for an entity.
+     */
+    public static double getGravityMultiplier(Entity entity) {
+        if (entity == null) {
+            return 1.0;
+        }
+        return gravityMultiplierAt(entity.getY(), resolveBodyGravityMultiplier(entity.level()));
     }
 
     /**
@@ -129,8 +177,8 @@ public final class PlanetaryGravityManager {
      * Applies (or clears) the adaptive gravity modifiers on a living entity.
      * Server-side only; the vanilla attribute sync engine propagates the change to clients.
      */
-    private static void applyAdaptiveGravity(LivingEntity entity) {
-        if (entity.level().isClientSide()) {
+    public static void applyAdaptiveGravity(LivingEntity entity) {
+        if (entity == null || (entity.level() != null && entity.level().isClientSide())) {
             return;
         }
 
@@ -141,36 +189,64 @@ public final class PlanetaryGravityManager {
         AttributeInstance fallDamage = entity.getAttribute(Attributes.FALL_DAMAGE_MULTIPLIER);
 
         if (Math.abs(multiplier - 1.0) < NEUTRAL_EPSILON) {
-            clearModifier(gravity, GRAVITY_MOD_ID);
-            clearModifier(safeFall, SAFE_FALL_MOD_ID);
-            clearModifier(fallDamage, FALL_DAMAGE_MOD_ID);
+            clearAdaptiveGravity(entity);
             return;
         }
 
         if (gravity != null) {
-            gravity.addOrUpdateTransientModifier(new AttributeModifier(
+            applyOrUpdateModifier(
+                    gravity,
                     GRAVITY_MOD_ID,
                     gravityModifierAmount(multiplier),
                     AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-            ));
+            );
         }
         if (safeFall != null) {
-            safeFall.addOrUpdateTransientModifier(new AttributeModifier(
+            applyOrUpdateModifier(
+                    safeFall,
                     SAFE_FALL_MOD_ID,
                     safeFallDistanceBonus(multiplier),
                     AttributeModifier.Operation.ADD_VALUE
-            ));
+            );
         }
         if (fallDamage != null) {
-            fallDamage.addOrUpdateTransientModifier(new AttributeModifier(
+            applyOrUpdateModifier(
+                    fallDamage,
                     FALL_DAMAGE_MOD_ID,
                     fallDamageMultiplierAmount(multiplier),
                     AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-            ));
+            );
         }
     }
 
-    private static void clearModifier(AttributeInstance instance, Identifier id) {
+    /**
+     * Applies or updates an attribute modifier only if the current value or operation differs,
+     * avoiding redundant attribute recalculation and client packet spam every tick.
+     */
+    private static void applyOrUpdateModifier(AttributeInstance instance, Identifier id, double amount, AttributeModifier.Operation operation) {
+        if (instance == null) {
+            return;
+        }
+        AttributeModifier existing = instance.getModifier(id);
+        if (existing != null && Math.abs(existing.amount() - amount) < NEUTRAL_EPSILON && existing.operation() == operation) {
+            return;
+        }
+        instance.addOrUpdateTransientModifier(new AttributeModifier(id, amount, operation));
+    }
+
+    /**
+     * Clears all adaptive planetary gravity modifiers from an entity.
+     */
+    public static void clearAdaptiveGravity(LivingEntity entity) {
+        if (entity == null) {
+            return;
+        }
+        clearModifier(entity.getAttribute(Attributes.GRAVITY), GRAVITY_MOD_ID);
+        clearModifier(entity.getAttribute(Attributes.SAFE_FALL_DISTANCE), SAFE_FALL_MOD_ID);
+        clearModifier(entity.getAttribute(Attributes.FALL_DAMAGE_MULTIPLIER), FALL_DAMAGE_MOD_ID);
+    }
+
+    public static void clearModifier(AttributeInstance instance, Identifier id) {
         if (instance != null && instance.hasModifier(id)) {
             instance.removeModifier(id);
         }
@@ -189,7 +265,7 @@ public final class PlanetaryGravityManager {
      * (mobs, alien fauna, and passengers included).
      */
     private static EventResult onEntityAdded(Entity entity, Level level) {
-        if (entity instanceof LivingEntity living && !level.isClientSide()) {
+        if (entity instanceof LivingEntity living && level != null && !level.isClientSide()) {
             applyAdaptiveGravity(living);
         }
         return EventResult.pass();
