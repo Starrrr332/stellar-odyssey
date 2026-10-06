@@ -1,5 +1,7 @@
 package com.amaro.stellarodyssey;
 
+import com.amaro.stellarodyssey.lifesupport.LifeSupportManager;
+import com.amaro.stellarodyssey.network.ModNetworking;
 import com.amaro.stellarodyssey.registry.ModBlocks;
 import com.amaro.stellarodyssey.registry.ModCreativeTabs;
 import com.amaro.stellarodyssey.registry.ModItems;
@@ -19,10 +21,12 @@ public final class StellarOdyssey {
     }
 
     public static void init() {
-        // Order matters on Fabric (registration is immediate): tabs -> blocks -> items.
         ModCreativeTabs.register();
         ModBlocks.register();
         ModItems.register();
+
+        ModNetworking.init();
+        LifeSupportManager.init();
 
         LOGGER.info("Stellar Odyssey initialised - preparing for launch.");
     }
