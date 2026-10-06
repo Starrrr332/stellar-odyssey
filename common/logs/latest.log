@@ -1,14 +1,14 @@
-[16:27:58] [Test worker/INFO]: Registered satellite module: disabled_mod (priority=50)
-[16:27:58] [Test worker/INFO]: Registered satellite module: active_mod (priority=10)
-[16:27:58] [Test worker/INFO]: Firing lifecycle stage: COMMON_SETUP
-[16:27:58] [Test worker/INFO]: Registered satellite module: low_priority (priority=1)
-[16:27:58] [Test worker/INFO]: Registered satellite module: high_priority (priority=100)
-[16:27:58] [Test worker/INFO]: Registered satellite module: mid_b (priority=50)
-[16:27:58] [Test worker/INFO]: Registered satellite module: mid_a (priority=50)
-[16:27:58] [Test worker/INFO]: Registered satellite module: faulty_mod (priority=100)
-[16:27:58] [Test worker/INFO]: Registered satellite module: survivor_mod (priority=10)
-[16:27:58] [Test worker/INFO]: Firing lifecycle stage: COMMON_SETUP
-[16:27:58] [Test worker/ERROR]: Error executing lifecycle stage COMMON_SETUP on module 'faulty_mod'
+[16:56:12] [Test worker/INFO]: Registered satellite module: disabled_mod (priority=50)
+[16:56:12] [Test worker/INFO]: Registered satellite module: active_mod (priority=10)
+[16:56:12] [Test worker/INFO]: Firing lifecycle stage: COMMON_SETUP
+[16:56:12] [Test worker/INFO]: Registered satellite module: low_priority (priority=1)
+[16:56:12] [Test worker/INFO]: Registered satellite module: high_priority (priority=100)
+[16:56:12] [Test worker/INFO]: Registered satellite module: mid_b (priority=50)
+[16:56:12] [Test worker/INFO]: Registered satellite module: mid_a (priority=50)
+[16:56:12] [Test worker/INFO]: Registered satellite module: faulty_mod (priority=100)
+[16:56:12] [Test worker/INFO]: Registered satellite module: survivor_mod (priority=10)
+[16:56:12] [Test worker/INFO]: Firing lifecycle stage: COMMON_SETUP
+[16:56:12] [Test worker/ERROR]: Error executing lifecycle stage COMMON_SETUP on module 'faulty_mod'
 java.lang.IllegalStateException: Intentional test fault in satellite module
 	at com.amaro.stellarodyssey.CoreLifecycleAndConstantsTest$FaultySatelliteModule.onCommonSetup(CoreLifecycleAndConstantsTest.java:245)
 	at com.amaro.stellarodyssey.core.lifecycle.ModLifecycleManager.fireStage(ModLifecycleManager.java:108)
@@ -99,41 +99,41 @@ java.lang.IllegalStateException: Intentional test fault in satellite module
 	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:72)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
 	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
-[16:27:58] [Test worker/INFO]: Registered satellite module: mod_primary (priority=10)
-[16:27:58] [Test worker/INFO]: Registered satellite module: mod_secondary (priority=5)
-[16:27:58] [Test worker/INFO]: Firing lifecycle stage: REGISTRY
-[16:27:58] [Test worker/INFO]: Firing lifecycle stage: COMMON_SETUP
-[16:27:58] [Test worker/INFO]: Firing lifecycle stage: CLIENT_SETUP
-[16:27:58] [Test worker/INFO]: Firing lifecycle stage: SERVER_STARTING
-[16:27:58] [Test worker/INFO]: Registered satellite module: test_id (priority=0)
-[16:27:58] [Test worker/INFO]: Registered satellite module: satellite_alpha (priority=10)
-[16:27:58] [Test worker/WARN]: Overwriting or replacing previously registered satellite module: satellite_alpha
-[16:27:58] [Test worker/INFO]: Registered satellite module: satellite_alpha (priority=99)
-[16:27:58] [Test worker/INFO]: Registered satellite module: worldgen (priority=10)
-[16:27:58] [Test worker/INFO]: Registered satellite module: ecology (priority=5)
-[16:27:58] [Test worker/INFO]: Registered satellite module: starmap (priority=0)
-[16:27:58] [Test worker/INFO]: WorldGenSatellite: initializing procedural worldgen registration (priority=10).
-[16:27:58] [Test worker/INFO]: WorldGenSatellite: registration phase completed successfully.
-[16:27:58] [Test worker/INFO]: WorldGenSatellite: common setup running - verifying procedural terrain pipelines.
-[16:27:58] [Test worker/INFO]: WorldGenSatellite: server starting - 4 celestial bodies charted in catalog.
-[16:27:58] [Test worker/INFO]: EcologySatellite: registering alien ecological behavioral foundations (priority=5).
-[16:27:58] [Test worker/INFO]: EcologySatellite: common setup complete. Low-gravity AI and spore dispersal active.
-[16:27:58] [Test worker/INFO]: EcologySatellite: server starting hook dispatched.
-[16:27:58] [Test worker/INFO]: StarMapSatellite: registering celestial navigation foundations (priority=0).
-[16:27:58] [Test worker/INFO]: StarMapSatellite: common setup complete. Celestial navigation satellite active.
-[16:27:58] [Test worker/INFO]: Registered satellite module: starmap (priority=0)
-[16:27:58] [Test worker/INFO]: Registered satellite module: worldgen (priority=10)
-[16:27:58] [Test worker/INFO]: Registered satellite module: ecology (priority=5)
-[16:27:58] [Test worker/INFO]: Firing lifecycle stage: REGISTRY
-[16:27:58] [Test worker/INFO]: WorldGenSatellite: initializing procedural worldgen registration (priority=10).
-[16:27:58] [Test worker/INFO]: WorldGenSatellite: registration phase completed successfully.
-[16:27:58] [Test worker/INFO]: EcologySatellite: registering alien ecological behavioral foundations (priority=5).
-[16:27:58] [Test worker/INFO]: StarMapSatellite: registering celestial navigation foundations (priority=0).
-[16:27:58] [Test worker/INFO]: Firing lifecycle stage: COMMON_SETUP
-[16:27:58] [Test worker/INFO]: WorldGenSatellite: common setup running - verifying procedural terrain pipelines.
-[16:27:58] [Test worker/INFO]: EcologySatellite: common setup complete. Low-gravity AI and spore dispersal active.
-[16:27:58] [Test worker/INFO]: StarMapSatellite: common setup complete. Celestial navigation satellite active.
-[16:27:58] [Test worker/INFO]: Firing lifecycle stage: SERVER_STARTING
-[16:27:58] [Test worker/INFO]: WorldGenSatellite: server starting - 4 celestial bodies charted in catalog.
-[16:27:58] [Test worker/INFO]: EcologySatellite: server starting hook dispatched.
-[16:27:58] [Test worker/INFO]: Registering all Stellar Odyssey deferred registries...
+[16:56:12] [Test worker/INFO]: Registered satellite module: mod_primary (priority=10)
+[16:56:12] [Test worker/INFO]: Registered satellite module: mod_secondary (priority=5)
+[16:56:12] [Test worker/INFO]: Firing lifecycle stage: REGISTRY
+[16:56:12] [Test worker/INFO]: Firing lifecycle stage: COMMON_SETUP
+[16:56:12] [Test worker/INFO]: Firing lifecycle stage: CLIENT_SETUP
+[16:56:12] [Test worker/INFO]: Firing lifecycle stage: SERVER_STARTING
+[16:56:12] [Test worker/INFO]: Registered satellite module: test_id (priority=0)
+[16:56:12] [Test worker/INFO]: Registered satellite module: satellite_alpha (priority=10)
+[16:56:12] [Test worker/WARN]: Overwriting or replacing previously registered satellite module: satellite_alpha
+[16:56:12] [Test worker/INFO]: Registered satellite module: satellite_alpha (priority=99)
+[16:56:12] [Test worker/INFO]: Registered satellite module: worldgen (priority=10)
+[16:56:12] [Test worker/INFO]: Registered satellite module: ecology (priority=5)
+[16:56:12] [Test worker/INFO]: Registered satellite module: starmap (priority=0)
+[16:56:12] [Test worker/INFO]: WorldGenSatellite: initializing procedural worldgen registration (priority=10).
+[16:56:12] [Test worker/INFO]: WorldGenSatellite: registration phase completed successfully.
+[16:56:12] [Test worker/INFO]: WorldGenSatellite: common setup running - verifying procedural terrain pipelines.
+[16:56:12] [Test worker/INFO]: WorldGenSatellite: server starting - 4 celestial bodies charted in catalog.
+[16:56:12] [Test worker/INFO]: EcologySatellite: registering alien ecological behavioral foundations (priority=5).
+[16:56:12] [Test worker/INFO]: EcologySatellite: common setup complete. Low-gravity AI and spore dispersal active.
+[16:56:12] [Test worker/INFO]: EcologySatellite: server starting hook dispatched.
+[16:56:12] [Test worker/INFO]: StarMapSatellite: registering celestial navigation foundations (priority=0).
+[16:56:12] [Test worker/INFO]: StarMapSatellite: common setup complete. Celestial navigation satellite active.
+[16:56:12] [Test worker/INFO]: Registered satellite module: starmap (priority=0)
+[16:56:12] [Test worker/INFO]: Registered satellite module: worldgen (priority=10)
+[16:56:12] [Test worker/INFO]: Registered satellite module: ecology (priority=5)
+[16:56:12] [Test worker/INFO]: Firing lifecycle stage: REGISTRY
+[16:56:12] [Test worker/INFO]: WorldGenSatellite: initializing procedural worldgen registration (priority=10).
+[16:56:12] [Test worker/INFO]: WorldGenSatellite: registration phase completed successfully.
+[16:56:12] [Test worker/INFO]: EcologySatellite: registering alien ecological behavioral foundations (priority=5).
+[16:56:12] [Test worker/INFO]: StarMapSatellite: registering celestial navigation foundations (priority=0).
+[16:56:12] [Test worker/INFO]: Firing lifecycle stage: COMMON_SETUP
+[16:56:12] [Test worker/INFO]: WorldGenSatellite: common setup running - verifying procedural terrain pipelines.
+[16:56:12] [Test worker/INFO]: EcologySatellite: common setup complete. Low-gravity AI and spore dispersal active.
+[16:56:12] [Test worker/INFO]: StarMapSatellite: common setup complete. Celestial navigation satellite active.
+[16:56:12] [Test worker/INFO]: Firing lifecycle stage: SERVER_STARTING
+[16:56:12] [Test worker/INFO]: WorldGenSatellite: server starting - 4 celestial bodies charted in catalog.
+[16:56:12] [Test worker/INFO]: EcologySatellite: server starting hook dispatched.
+[16:56:12] [Test worker/INFO]: Registering all Stellar Odyssey deferred registries...

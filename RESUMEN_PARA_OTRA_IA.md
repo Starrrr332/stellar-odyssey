@@ -77,7 +77,26 @@ implementar `dev.architectury.registry.menu.ExtendedMenuProvider` (método `save
 Usar `SimpleMenuProvider` con un menú extended lanza:
 `[Fabric] Extended menu ... must be opened with an ExtendedMenuProvider!`
 
-### 2.5 Sonidos — `sounds.json` de assets ya no existe en vanilla
+### 2.5 Features de worldgen — sin wrapper `config` (código aplanado)
+En MC 26.3 el registro es `minecraft:worldgen/feature` (ya NO es `worldgen/configured_feature`)
+y el codec de cada feature espera sus parámetros **directamente en la raíz del JSON**.
+El wrapper clásico `{ "type": ..., "config": { ... } }` de versiones antiguas **no parsea**:
+
+```json
+{
+  "type": "minecraft:ore",
+  "size": 9,
+  "discard_chance_on_air_exposure": 0.1,
+  "targets": [ ... ]
+}
+```
+
+> ⚠️ Si el feature no parsea, el registro `minecraft:worldgen/feature` queda con valores
+> sin bindear → `Registry loading errors` → `Failed to load registries` → el cliente se
+> **queda en pantalla de carga infinita al crear el mundo**. Igual que las recetas (2.2),
+> un solo JSON de feature roto destruye la carga de registros.
+
+### 2.6 Sonidos — `sounds.json` de assets ya no existe en vanilla
 MC 26.3 ya no usa `assets/minecraft/sounds.json`. Los `.ogg` del mod están bien y se reproducen;
 el aviso "Missing sound for event" es un WARN menor. No bloquea nada.
 
@@ -134,6 +153,7 @@ Cada uno: bloque de mena, item en bruto (`raw_*`), lingote (`*_ingot`), recetas 
 | `f1cd7bf` | **Worldgen roto** | Recetas con tipo `furnace`/`blast_furnace` inválido → registro roto (ver 2.2) |
 | `f1cd7bf` | Loot table `alien_turf` inválida | Condición silk touch antigua (ver 2.3) |
 | `f1cd7bf` | Item 3D de nave con UVs fuera de rango | UVs en píxeles (0-58) en vez de grid 0-16 → `translucency out of bounds` |
+| este run | Pantalla infinita al crear mundo | Features de worldgen con wrapper `config` antiguo (ver 2.5) → `Failed to load registries` |
 | `22012a2` | Mesa de ensamblaje no abría | Menú extended abierto con `SimpleMenuProvider` (ver 2.4) |
 | `22012a2` | Dupe de items al cerrar mesa | `removed()` devolvía items sin vaciar el contenedor |
 
@@ -175,7 +195,7 @@ C:\Users\amaro\AppData\Roaming\PrismLauncher\instances\Stellar Odyssey\mods\  (y
    nuevos (o reutilizar `OreDistributionConfig`).
 2. **Verificación visual en juego**: no se ha confirmado a ojo que las texturas se vean bien
    (solo programáticamente). Falta que un humano entre al juego.
-3. **Sonidos**: los `.ogg` están bien pero el aviso "Missing sound" persiste (ver 2.5). Si se
+3. **Sonidos**: los `.ogg` están bien pero el aviso "Missing sound" persiste (ver 2.6). Si se
    oye silencio al acelerar la nave, investigar el formato de sonido de MC 26.3.
 4. **Secuencia de lanzamiento / teleport**: compila y pasa tests, pero no probado en partida real.
 5. **Logs de runtime**: `common/logs/*.log.gz` se modifican al ejecutar el juego (no commitearlos).

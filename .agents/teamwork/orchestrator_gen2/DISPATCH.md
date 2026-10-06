@@ -31,3 +31,20 @@ Acceptance Criteria:
 - Cero dependencias circulares entre paquetes world, atmosphere, rocket y client.
 - Registro extensible mediante DeferredRegister sin modificar clases base del motor.
 - Sincronización de notas en el Vault de Obsidian (C:\Users\amaro\OneDrive\Documents\Obsidian Vault\).
+
+
+## 2026-10-06T19:47:57Z
+Sentinel liveness nudge & Instrucción de reanudación y avance de Sprint S1 / Puerta M2:
+El usuario ha solicitado refrescar memoria con el Obsidian Vault (`C:\Users\amaro\OneDrive\Documents\Obsidian Vault\Agentes\`) y reactivar al equipo de trabajo para continuar.
+
+Estado actual del Vault:
+- `STATUS.md`: 105/105 tests verdes (20 suites), JAR 16:27 desplegado en Prism.
+- `SPRINT_S1.md`: Alcance activo para P1/P2.
+- `HANDOFFS/antigravity.md`: Memoria refrescada, reactivación del equipo multi-agente confirmada.
+
+Directivas de acción inmediata:
+1. Avanzar formalmente a la Puerta M2:
+   - R2: Física de Gravedad Adaptativa por Dimensión (`PlanetaryGravityManager`, Nexus Moon 0.16g, Proxima B 0.35g, eventos Architectury).
+   - R3: Modelos Java 3D y atlas UV para Cohete Tier 2 (Voyager) y Tier 3 (Odyssey), texturas emisivas bioluminiscentes (Celidium, Astralite, Verdantite) en `SubmitNodeCollector`.
+   - R4 / S1-F3.3: Red de cinemáticas y secuencia: `FlightPhasePayload` (S2C) + `SelectDestinationPayload` (C2S) sobre `ModNetworking`, e integración StarMap GUI.
+2. Coordinar especialistas/workers para M2, mantener tests unitarios al 100%, y registrar progreso en `progress.md` y `BRIEFING.md`.
