@@ -24,7 +24,10 @@ public enum RocketTiers {
             100,
             4,
             0xE2E8F0,
-            0.8F
+            0.8F,
+            200,   // ascentTicks
+            80,    // warpChargeTicks
+            300.0  // atmosphereExitAltitude
     )),
     TIER_2(RocketTier.create(
             2,
@@ -35,7 +38,10 @@ public enum RocketTiers {
             160,
             6,
             0xD97724,
-            1.0F
+            1.0F,
+            240,
+            100,
+            450.0
     )),
     TIER_3(RocketTier.create(
             3,
@@ -46,7 +52,10 @@ public enum RocketTiers {
             240,
             8,
             0x06B6D4,
-            1.3F
+            1.3F,
+            280,
+            120,
+            600.0
     ));
 
     private final RocketTier tier;

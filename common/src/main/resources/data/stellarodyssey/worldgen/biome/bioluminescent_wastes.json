@@ -37,7 +37,11 @@
     [],
     [],
     [],
-    [],
+    [
+      "stellarodyssey:celidium_ore_vein_placed",
+      "stellarodyssey:verdantite_ore_vein_placed",
+      "stellarodyssey:astralite_ore_vein_placed"
+    ],
     [],
     [],
     [],

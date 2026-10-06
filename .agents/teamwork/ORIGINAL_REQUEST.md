@@ -60,3 +60,41 @@ Pendiente: (a) Worker 2: matriz de tiers de minerales 1-5 (AlienMineralTier) con
 REGLAS DEL USUARIO: todo el trabajo debe usar el modelo Claude Sonnet 5.5 (el usuario cambió todos los agentes a Sonnet porque Gemini daba error de cuota). Respeta las skills en C:\Users\amaro\OneDrive\Desktop\Skills (antigravity-modding-router y java-mod-reviewer): common sin imports de net.neoforged/net.fabricmc ni clases client-only; sin referencias estáticas a Level/Entity/Player; registros solo vía DeferredRegister; paquetes validados en el servidor; satélites sin dependencias circulares. Si te quedas sin cuota, marca el código con el banner '// ⚠️ [GENERATED IN CONTINGENCY MODE - REQUIRES ARCHITECTURAL AUDIT]'.
 
 Acceptance Criteria: [ ] ./gradlew build y ./gradlew test pasan sin errores. [ ] Todos los DeferredRegister quedan vinculados y los objetos son accesibles con referencias tipadas estables. [ ] Nuevos minerales/tiers se pueden registrar sin modificar la lógica del motor. [ ] No hay dependencias circulares entre worldgen, ecology y starmap. [ ] Reporte final con formato Summary / Critical / Major / Minor / Verdict.
+
+
+## 2026-10-06T17:13:21Z
+
+Desarrollo autónomo multi-agente de las características principales de exploración espacial para el mod Stellar Odyssey (Minecraft 26.3, Java 25, Architectury Loom multi-loader): Sistema de Oxígeno/Atmósfera, Física de Gravedad Planetaria, Modelos 3D para Cohetes Tier 2 y Tier 3, e Interfaz de Navegación Estelar (StarMap GUI).
+
+Working directory: c:/Users/amaro/Documents/antigravity/blissful-lavoisier
+Integrity mode: development
+
+## Requirements
+
+### R1. Sistema de Oxígeno y Atmósfera Planetaria
+- Mecánica de degradación de O2 en dimensiones sin atmósfera (Nexus Moon, Proxima B, Exotic Prime).
+- Consumo del ítem OxygenTankItem acoplado al equipamiento SpacesuitItem (casco, pechera, pantalón, botas).
+- Bloque y lógica de Estación de Recarga / Sellador de Oxígeno (Oxygen Sealer / Refiller) registrado en ModBlocks y ModItems.
+
+### R2. Física de Gravedad Adaptativa por Dimensión
+- Modificador de gravedad mediante eventos Architectury/Minecraft en ModDimensions.
+- Ajuste de gravedad reducida en Nexus Moon (0.16g) y Proxima B (0.35g) afectando a jugadores y entidades (caída lenta, impulso de salto).
+
+### R3. Modelos 3D & Renderizado para Cohetes Tier 2 & Tier 3
+- Modelos Java 3D y atlas UV para Cohete Tier 2 (Voyager) y Tier 3 (Odyssey).
+- Texturas emisivas bioluminiscentes vinculadas a Celidium (T2) y Astralite/Verdantite (T3) integradas en SubmitNodeCollector.
+
+### R4. Interfaz de Navegación Estelar (StarMap GUI) & Selección de Destino
+- Interfaz interactiva de selección de cuerpo celeste al montar el cohete sobre la Plataforma de Lanzamiento (Launch Pad).
+- Validación estricta del Tier mínimo de cohete requerido para viajar a cada dimensión.
+
+## Acceptance Criteria
+
+### Compilación y Pruebas
+- [ ] ./gradlew test pasa el 100% de las pruebas JUnit.
+- [ ] ./gradlew :fabric:build y ./gradlew :neoforge:build compilan limpiamente sin errores de side-safety ni referencias a clases Client-only dentro de common.
+
+### Arquitectura & Integridad
+- [ ] Cero dependencias circulares entre paquetes world, atmosphere, rocket y client.
+- [ ] Registro extensible mediante DeferredRegister sin modificar clases base del motor.
+- [ ] Sincronización de notas en el Vault de Obsidian (C:\Users\amaro\OneDrive\Documents\Obsidian Vault\).

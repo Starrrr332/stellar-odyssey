@@ -3,6 +3,7 @@ package com.amaro.stellarodyssey.registry;
 import com.amaro.stellarodyssey.StellarOdyssey;
 import com.amaro.stellarodyssey.block.AssemblyTableBlock;
 import com.amaro.stellarodyssey.block.entity.AssemblyTableBlockEntity;
+import com.amaro.stellarodyssey.block.entity.OxygenSealerBlockEntity;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
@@ -20,6 +21,12 @@ public final class ModBlockEntityTypes {
                     () -> new BlockEntityType<>(
                             AssemblyTableBlockEntity::new,
                             Set.of(ModBlocks.ASSEMBLY_TABLE.get())));
+
+    public static final RegistrySupplier<BlockEntityType<OxygenSealerBlockEntity>> OXYGEN_SEALER =
+            BLOCK_ENTITY_TYPES.register("oxygen_sealer",
+                    () -> new BlockEntityType<>(
+                            OxygenSealerBlockEntity::new,
+                            Set.of(ModBlocks.OXYGEN_SEALER.get())));
 
     private ModBlockEntityTypes() {
     }

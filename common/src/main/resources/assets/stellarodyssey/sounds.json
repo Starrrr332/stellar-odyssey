@@ -4,15 +4,19 @@
     "sounds": [
       {
         "name": "stellarodyssey:entity/starship/thrust",
+        "type": "sound",
         "stream": true,
-        "loop": true
+        "attenuation_distance": 24
       }
     ]
   },
   "hazard.decompression_alarm": {
     "subtitle": "subtitles.stellarodyssey.decompression_alarm",
     "sounds": [
-      "stellarodyssey:hazard/decompression_alarm"
+      {
+        "name": "stellarodyssey:hazard/decompression_alarm",
+        "type": "sound"
+      }
     ]
   },
   "ambient.alien_world": {
@@ -20,15 +24,19 @@
     "sounds": [
       {
         "name": "stellarodyssey:ambient/alien_world",
-        "stream": true,
-        "loop": true
+        "type": "sound",
+        "stream": true
       }
     ]
   },
   "block.alien_ore.resonate": {
     "subtitle": "subtitles.stellarodyssey.resonance_crystal",
     "sounds": [
-      "stellarodyssey:block/alien_ore/resonate"
+      {
+        "name": "stellarodyssey:block/alien_ore/resonate",
+        "type": "sound",
+        "attenuation_distance": 12
+      }
     ]
   }
 }

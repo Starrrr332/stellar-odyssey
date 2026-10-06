@@ -6,6 +6,8 @@ import com.amaro.stellarodyssey.block.AlienOreBlock;
 import com.amaro.stellarodyssey.block.AssemblyTableBlock;
 import com.amaro.stellarodyssey.block.LaunchPadBaseBlock;
 import com.amaro.stellarodyssey.block.LaunchPadBlock;
+import com.amaro.stellarodyssey.block.OxygenRefillerBlock;
+import com.amaro.stellarodyssey.block.OxygenSealerBlock;
 import com.amaro.stellarodyssey.registry.tiers.AlienMineralTier;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -95,6 +97,27 @@ public final class ModBlocks {
                     .mapColor(MapColor.COLOR_LIGHT_GRAY)
                     .instrument(NoteBlockInstrument.BASEDRUM)
                     .strength(4.0F, 8.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.METAL));
+
+    // --- Life Support Machines ---------------------------------------------------------------
+    /** Oxygen Refiller: recharges portable oxygen tanks. */
+    public static final RegistrySupplier<OxygenRefillerBlock> OXYGEN_REFILLER = register("oxygen_refiller",
+            OxygenRefillerBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .strength(3.5F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.METAL));
+
+    /** Oxygen Sealer: pressurizes and oxygenates enclosed rooms on airless worlds. */
+    public static final RegistrySupplier<OxygenSealerBlock> OXYGEN_SEALER = register("oxygen_sealer",
+            OxygenSealerBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_LIGHT_GRAY)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .strength(3.5F, 6.0F)
                     .requiresCorrectToolForDrops()
                     .sound(SoundType.METAL));
 

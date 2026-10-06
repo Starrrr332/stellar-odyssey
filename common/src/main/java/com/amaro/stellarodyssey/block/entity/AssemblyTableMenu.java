@@ -78,6 +78,8 @@ public class AssemblyTableMenu extends AbstractContainerMenu {
         for (int col = 0; col < 9; col++) {
             this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
         }
+
+        this.updateResult();
     }
 
     /** Recomputes the result slot from the current components. */
@@ -95,16 +97,24 @@ public class AssemblyTableMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public void broadcastChanges() {
+        this.updateResult();
+        super.broadcastChanges();
+    }
+
+    @Override
     public void slotsChanged(Container container) {
         super.slotsChanged(container);
-        if (container == this.components) {
-            this.updateResult();
-        }
+        this.updateResult();
     }
 
     private void consumeComponents() {
         for (int i = 0; i < COMPONENT_SLOTS; i++) {
-            this.components.setItem(i, ItemStack.EMPTY);
+            ItemStack stack = this.components.getItem(i);
+            if (!stack.isEmpty()) {
+                stack.shrink(1);
+                this.components.setItem(i, stack);
+            }
         }
     }
 
@@ -115,18 +125,34 @@ public class AssemblyTableMenu extends AbstractContainerMenu {
         if (slot != null && slot.hasItem()) {
             ItemStack current = slot.getItem();
             stack = current.copy();
-            if (index < SLOT_COUNT) {
+
+            if (index == RESULT_SLOT) {
                 if (!this.moveItemStackTo(current, SLOT_COUNT, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.moveItemStackTo(current, 0, COMPONENT_SLOTS, false)) {
-                return ItemStack.EMPTY;
+                slot.onQuickCraft(current, stack);
+                slot.onTake(player, current);
+            } else if (index < COMPONENT_SLOTS) {
+                if (!this.moveItemStackTo(current, SLOT_COUNT, this.slots.size(), true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else {
+                if (!this.moveItemStackTo(current, 0, COMPONENT_SLOTS, false)) {
+                    return ItemStack.EMPTY;
+                }
             }
+
             if (current.isEmpty()) {
                 slot.setByPlayer(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
             }
+
+            if (current.getCount() == stack.getCount()) {
+                return ItemStack.EMPTY;
+            }
+
+            this.updateResult();
         }
         return stack;
     }
@@ -137,16 +163,8 @@ public class AssemblyTableMenu extends AbstractContainerMenu {
                 && player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0, true);
     }
 
-    /**
-     * On close, leftover components go back to the player and the table is emptied
-     * (vanilla furnace pattern). Returning them without clearing the container would
-     * duplicate items the next time the table is opened.
-     */
     @Override
     public void removed(Player player) {
         super.removed(player);
-        if (!player.level().isClientSide()) {
-            this.clearContainer(player, this.components);
-        }
     }
 }

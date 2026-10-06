@@ -48,8 +48,12 @@ public final class AssemblyLogic {
         if (tier == null) {
             return Optional.empty();
         }
-        for (String required : RocketComponentRegistry.getRequiredComponents(tier)) {
-            if (counts.getOrDefault(required, 0) != 1) {
+        java.util.List<String> required = RocketComponentRegistry.getRequiredComponents(tier);
+        if (counts.size() != required.size()) {
+            return Optional.empty();
+        }
+        for (String req : required) {
+            if (counts.getOrDefault(req, 0) != 1) {
                 return Optional.empty();
             }
         }

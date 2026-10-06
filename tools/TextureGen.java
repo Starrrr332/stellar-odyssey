@@ -39,6 +39,7 @@ public class TextureGen {
         assemblyTableGui();
         icon();
         newMinerals();
+        rawAlien();
         System.out.println("Textures written to " + assets);
     }
 
@@ -1448,20 +1449,7 @@ public class TextureGen {
         }
         write(ore, "textures/block/" + name + "_ore.png");
 
-        BufferedImage raw = new BufferedImage(S, S, BufferedImage.TYPE_INT_ARGB);
-        for (int y = 0; y < S; y++) {
-            for (int x = 0; x < S; x++) {
-                double dx = (x - 15.5) / 9.5, dy = (y - 15.5) / 9.5;
-                double wob = 0.18 * valueNoise(x / 3.0, y / 3.0, seed + 5);
-                if (dx * dx + dy * dy * 1.15 > 1 + wob) continue;
-                double n = valueNoise(x / 4.0, y / 4.0, seed + 6);
-                int c = n < 0.35 ? dark : (n < 0.62 ? main : light);
-                if (dx * dx + dy * dy * 1.15 > 0.82) c = dark;
-                raw.setRGB(x, y, c);
-            }
-        }
-        outline(raw, 0xFF1A1E26);
-        write(raw, "textures/item/raw_" + name + ".png");
+        drawRawChunk(name, main, light, dark, seed);
 
         BufferedImage ingot = new BufferedImage(S, S, BufferedImage.TYPE_INT_ARGB);
         for (int y = 12; y <= 20; y++) {
@@ -1477,6 +1465,32 @@ public class TextureGen {
         }
         outline(ingot, 0xFF1A1E26);
         write(ingot, "textures/item/" + name + "_ingot.png");
+    }
+
+    /** Round-ish raw mineral chunk item sprite (shared by the refined minerals). */
+    static void drawRawChunk(String name, int main, int light, int dark, int seed) throws IOException {
+        BufferedImage raw = new BufferedImage(S, S, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < S; y++) {
+            for (int x = 0; x < S; x++) {
+                double dx = (x - 15.5) / 9.5, dy = (y - 15.5) / 9.5;
+                double wob = 0.18 * valueNoise(x / 3.0, y / 3.0, seed + 5);
+                if (dx * dx + dy * dy * 1.15 > 1 + wob) continue;
+                double n = valueNoise(x / 4.0, y / 4.0, seed + 6);
+                int c = n < 0.35 ? dark : (n < 0.62 ? main : light);
+                if (dx * dx + dy * dy * 1.15 > 0.82) c = dark;
+                raw.setRGB(x, y, c);
+            }
+        }
+        outline(raw, 0xFF1A1E26);
+        write(raw, "textures/item/raw_" + name + ".png");
+    }
+
+    // ------------------------------------------------------------------------------------
+    //  Alien ore raw chunk: violet crystal matrix with magenta bioluminescent glow.
+    //  alien_ore has no refined ingot, so only the raw item sprite is generated here.
+    // ------------------------------------------------------------------------------------
+    static void rawAlien() throws IOException {
+        drawRawChunk("alien", 0xFF7C4DFF, 0xFFDB72FF, 0xFF241D3C, 61);
     }
 
     // ------------------------------------------------------------------------------------

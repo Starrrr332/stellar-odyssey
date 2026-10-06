@@ -2,6 +2,7 @@ package com.amaro.stellarodyssey.client.model;
 
 import com.amaro.stellarodyssey.StellarOdyssey;
 import com.amaro.stellarodyssey.client.renderer.state.RocketRenderState;
+import com.amaro.stellarodyssey.rocket.RocketFlightPhase;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -64,14 +65,47 @@ public class RocketModel extends EntityModel<RocketRenderState> {
     @Override
     public void setupAnim(RocketRenderState state) {
         super.setupAnim(state);
-        // Slight vibration during countdown / liftoff
-        if (state.launching) {
-            float shake = (float) Math.sin(state.launchTicks * 0.8F) * 0.01F;
-            this.root.xRot = shake;
-            this.root.zRot = shake * 0.7F;
-        } else {
+        // The render state mirrors the server-authoritative flight phase, so the airframe
+        // can be animated per phase: countdown tremble, ignition roar, thrust rumble, warp
+        // charge shiver and a damped settle on touchdown.
+        RocketFlightPhase phase = state.phase != null ? state.phase : RocketFlightPhase.IDLE;
+        float intensity = shakeIntensity(phase, state.phaseProgress);
+        float t = state.launchTicks;
+
+        if (intensity <= 0.0F) {
             this.root.xRot = 0.0F;
             this.root.zRot = 0.0F;
+            this.body.xRot = 0.0F;
+            this.body.zRot = 0.0F;
+            return;
         }
+
+        // Two slightly detuned sines give a believable mechanical shudder rather than a
+        // flat wobble, and the amplitude is driven by the phase (and its progress).
+        this.root.xRot = (float) Math.sin(t * 0.82F) * intensity;
+        this.root.zRot = (float) Math.sin(t * 0.63F + 1.7F) * intensity * 0.8F;
+
+        // Nose into the direction of travel while under power.
+        this.body.xRot = switch (phase) {
+            case ASCENT, ATMOSPHERE_EXIT -> 0.05F;
+            case ARRIVAL -> -0.04F;
+            default -> 0.0F;
+        };
+        this.body.zRot = (float) Math.sin(t * 0.51F + 0.4F) * intensity * 0.5F;
+    }
+
+    /** Vibration amplitude (radians) for a given phase, scaled by its progress where relevant. */
+    private static float shakeIntensity(RocketFlightPhase phase, float progress) {
+        return switch (phase) {
+            case COUNTDOWN -> 0.004F + 0.012F * progress;   // rumble builds as T-0 approaches
+            case IGNITION -> 0.022F;
+            case ASCENT -> 0.026F;
+            case ATMOSPHERE_EXIT -> 0.022F;
+            case ORBIT -> 0.003F;                             // near-still; holding station
+            case WARP_CHARGE -> 0.010F + 0.016F * progress;   // hyperdrive spin-up
+            case ARRIVAL -> 0.020F;
+            case LANDING -> 0.016F * (1.0F - progress);       // damped settle
+            default -> 0.0F;
+        };
     }
 }

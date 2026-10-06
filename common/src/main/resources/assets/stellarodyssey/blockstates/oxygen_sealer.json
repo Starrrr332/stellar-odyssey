@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "sealed=false": {
+      "model": "stellarodyssey:block/oxygen_sealer"
+    },
+    "sealed=true": {
+      "model": "stellarodyssey:block/oxygen_sealer_active"
+    }
+  }
+}

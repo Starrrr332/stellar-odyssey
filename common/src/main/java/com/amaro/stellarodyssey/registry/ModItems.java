@@ -75,6 +75,10 @@ public final class ModItems {
     public static final RegistrySupplier<Item> RAW_ASTRALITE = register("raw_astralite", Item::new,
             new Item.Properties().rarity(Rarity.RARE));
 
+    /** Raw chunk of the base-tier alien ore (the only ore without a refined ingot). */
+    public static final RegistrySupplier<Item> RAW_ALIEN = register("raw_alien", Item::new,
+            new Item.Properties().rarity(Rarity.COMMON));
+
     public static final RegistrySupplier<Item> CELIDIUM_INGOT = register("celidium_ingot", Item::new,
             new Item.Properties().rarity(Rarity.UNCOMMON));
     public static final RegistrySupplier<Item> VERDANTITE_INGOT = register("verdantite_ingot", Item::new,
@@ -106,6 +110,15 @@ public final class ModItems {
     public static final RegistrySupplier<BlockItem> LAUNCH_PAD_BASE = register("launch_pad_base",
             props -> new BlockItem(ModBlocks.LAUNCH_PAD_BASE.get(), props.useBlockDescriptionPrefix()),
             new Item.Properties().rarity(Rarity.COMMON));
+
+    // --- Life support machine block items ----------------------------------------------------
+    public static final RegistrySupplier<BlockItem> OXYGEN_REFILLER = register("oxygen_refiller",
+            props -> new BlockItem(ModBlocks.OXYGEN_REFILLER.get(), props.useBlockDescriptionPrefix()),
+            new Item.Properties().rarity(Rarity.UNCOMMON));
+
+    public static final RegistrySupplier<BlockItem> OXYGEN_SEALER = register("oxygen_sealer",
+            props -> new BlockItem(ModBlocks.OXYGEN_SEALER.get(), props.useBlockDescriptionPrefix()),
+            new Item.Properties().rarity(Rarity.UNCOMMON));
 
     // --- Rocket components (tiered) ----------------------------------------------------------
     /** rocket_<type>_t<level> for every tier/type combination. */

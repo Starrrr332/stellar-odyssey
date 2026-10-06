@@ -52,6 +52,23 @@ public final class ModConfiguredFeatures {
             StellarOdyssey.id("bioluminescent_crystal_cluster")
     );
 
+    // --- Tiered alien mineral ore veins (celidium T1 / verdantite T2 / astralite T3) ---
+
+    public static final ResourceKey<Feature> CELIDIUM_ORE_VEIN = ResourceKey.create(
+            Registries.FEATURE,
+            StellarOdyssey.id("celidium_ore_vein")
+    );
+
+    public static final ResourceKey<Feature> VERDANTITE_ORE_VEIN = ResourceKey.create(
+            Registries.FEATURE,
+            StellarOdyssey.id("verdantite_ore_vein")
+    );
+
+    public static final ResourceKey<Feature> ASTRALITE_ORE_VEIN = ResourceKey.create(
+            Registries.FEATURE,
+            StellarOdyssey.id("astralite_ore_vein")
+    );
+
     // --- Placed Feature Registry Keys ---
 
     public static final ResourceKey<PlacedFeature> ALIEN_ORE_VEIN_PLACED = ResourceKey.create(
@@ -77,6 +94,21 @@ public final class ModConfiguredFeatures {
     public static final ResourceKey<PlacedFeature> METEORIC_IRON_CLUSTER_PLACED = ResourceKey.create(
             Registries.PLACED_FEATURE,
             StellarOdyssey.id("meteoric_iron_cluster_placed")
+    );
+
+    public static final ResourceKey<PlacedFeature> CELIDIUM_ORE_VEIN_PLACED = ResourceKey.create(
+            Registries.PLACED_FEATURE,
+            StellarOdyssey.id("celidium_ore_vein_placed")
+    );
+
+    public static final ResourceKey<PlacedFeature> VERDANTITE_ORE_VEIN_PLACED = ResourceKey.create(
+            Registries.PLACED_FEATURE,
+            StellarOdyssey.id("verdantite_ore_vein_placed")
+    );
+
+    public static final ResourceKey<PlacedFeature> ASTRALITE_ORE_VEIN_PLACED = ResourceKey.create(
+            Registries.PLACED_FEATURE,
+            StellarOdyssey.id("astralite_ore_vein_placed")
     );
 
     // --- Planetary Ore Distribution Profiles ---
@@ -142,6 +174,33 @@ public final class ModConfiguredFeatures {
             0.00f // 0% discard (full subterranean protection)
     );
 
+    /** Celidium (Tier 1): the most common alien mineral, spread across the upper crust. */
+    public static final OreDistributionConfig CELIDIUM_DISTRIBUTION = new OreDistributionConfig(
+            9,     // 9 blocks per vein
+            8,     // 8 veins per chunk
+            -64,   // Bedrock floor
+            112,   // Mid-altitude upper bound
+            0.10f  // 10% air exposure discard
+    );
+
+    /** Verdantite (Tier 2): rarer, confined to the middle strata. */
+    public static final OreDistributionConfig VERDANTITE_DISTRIBUTION = new OreDistributionConfig(
+            6,     // 6 blocks per vein
+            4,     // 4 veins per chunk
+            -48,   // Deep lower bound
+            48,    // Shallow upper bound
+            0.05f  // 5% air exposure discard
+    );
+
+    /** Astralite (Tier 3): the rarest tier, only deep subterranean pockets. */
+    public static final OreDistributionConfig ASTRALITE_DISTRIBUTION = new OreDistributionConfig(
+            4,     // 4 blocks per vein
+            2,     // 2 veins per chunk
+            -64,   // Deep mantle
+            8,     // Deep crust only
+            0.00f  // 0% discard (full subterranean protection)
+    );
+
     private ModConfiguredFeatures() {
     }
 
@@ -172,6 +231,58 @@ public final class ModConfiguredFeatures {
     }
 
     /**
+     * Builds a genuine {@link OreFeature} that deposits a specific alien mineral ore into both
+     * vanilla stone strata and the mod's own alien stone, so the tiered minerals spawn on every
+     * procedural planet regardless of which surface rules are active.
+     *
+     * @param oreBlock                   The mineral ore block to deposit.
+     * @param veinSize                   Number of ore blocks per vein.
+     * @param discardChanceOnAirExposure Air exposure discard probability.
+     * @return Configured {@link OreFeature} instance.
+     */
+    public static OreFeature createMineralOreFeature(
+            net.minecraft.world.level.block.Block oreBlock,
+            int veinSize,
+            float discardChanceOnAirExposure
+    ) {
+        Objects.requireNonNull(oreBlock, "oreBlock cannot be null");
+        List<BlockReplacement> replacements = List.of(
+                BlockReplacement.replace(
+                        new BlockMatchTest(ModBlocks.ALIEN_STONE.get()),
+                        oreBlock.defaultBlockState()
+                ),
+                BlockReplacement.replace(
+                        new BlockMatchTest(net.minecraft.world.level.block.Blocks.STONE),
+                        oreBlock.defaultBlockState()
+                ),
+                BlockReplacement.replace(
+                        new BlockMatchTest(net.minecraft.world.level.block.Blocks.DEEPSLATE),
+                        oreBlock.defaultBlockState()
+                )
+        );
+        return new OreFeature(replacements, veinSize, discardChanceOnAirExposure);
+    }
+
+    /**
+     * Builds the configured ore feature for a built-in alien mineral tier.
+     *
+     * @param featureKey The configured feature {@link ResourceKey} identifying the mineral.
+     * @return Configured {@link OreFeature} instance for the matching tier.
+     */
+    public static OreFeature createMineralOreFeature(ResourceKey<Feature> featureKey) {
+        Objects.requireNonNull(featureKey, "featureKey cannot be null");
+        if (featureKey.equals(VERDANTITE_ORE_VEIN)) {
+            return createMineralOreFeature(ModBlocks.VERDANTITE_ORE.get(),
+                    VERDANTITE_DISTRIBUTION.veinSize(), VERDANTITE_DISTRIBUTION.discardChanceOnAirExposure());
+        } else if (featureKey.equals(ASTRALITE_ORE_VEIN)) {
+            return createMineralOreFeature(ModBlocks.ASTRALITE_ORE.get(),
+                    ASTRALITE_DISTRIBUTION.veinSize(), ASTRALITE_DISTRIBUTION.discardChanceOnAirExposure());
+        }
+        return createMineralOreFeature(ModBlocks.CELIDIUM_ORE.get(),
+                CELIDIUM_DISTRIBUTION.veinSize(), CELIDIUM_DISTRIBUTION.discardChanceOnAirExposure());
+    }
+
+    /**
      * Retrieves the recommended ore distribution config for the given configured feature key.
      *
      * @param featureKey The feature resource key.
@@ -185,6 +296,12 @@ public final class ModConfiguredFeatures {
             return METEORIC_CLUSTER;
         } else if (featureKey.equals(EXOTIC_ORE_POCKET)) {
             return DEEP_EXOTIC_POCKET;
+        } else if (featureKey.equals(CELIDIUM_ORE_VEIN)) {
+            return CELIDIUM_DISTRIBUTION;
+        } else if (featureKey.equals(VERDANTITE_ORE_VEIN)) {
+            return VERDANTITE_DISTRIBUTION;
+        } else if (featureKey.equals(ASTRALITE_ORE_VEIN)) {
+            return ASTRALITE_DISTRIBUTION;
         }
         return STANDARD_ALIEN_ORE;
     }

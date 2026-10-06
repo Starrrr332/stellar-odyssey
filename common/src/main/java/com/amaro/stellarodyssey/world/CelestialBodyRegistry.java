@@ -48,7 +48,7 @@ public final class CelestialBodyRegistry implements ICelestialCatalog {
     // Built-in celestial bodies
     public static final ICelestialBody PROXIMA_B = new PlanetaryBody(
             ModDimensions.PROXIMA_B,
-            0.40,
+            0.35,
             0.15f,
             false,
             2.40f,
