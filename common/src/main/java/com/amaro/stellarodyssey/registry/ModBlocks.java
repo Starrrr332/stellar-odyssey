@@ -31,6 +31,23 @@ public final class ModBlocks {
                     .sound(SoundType.AMETHYST)
                     .lightLevel(state -> 5));
 
+    /** Alien Stone: dense metamorphic silicate bedrock of hostile celestial bodies. */
+    public static final RegistrySupplier<Block> ALIEN_STONE = register("alien_stone", Block::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .strength(3.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.DEEPSLATE));
+
+    /** Alien Turf: bioluminescent xenomorphic ground cover. Emits faint neon glow. */
+    public static final RegistrySupplier<Block> ALIEN_TURF = register("alien_turf", Block::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_CYAN)
+                    .strength(0.8F, 0.8F)
+                    .sound(SoundType.SCULK)
+                    .lightLevel(state -> 4));
+
     private ModBlocks() {
     }
 

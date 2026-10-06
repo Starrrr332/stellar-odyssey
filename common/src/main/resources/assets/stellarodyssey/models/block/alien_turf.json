@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "stellarodyssey:block/alien_turf_top",
+    "bottom": "stellarodyssey:block/alien_stone",
+    "side": "stellarodyssey:block/alien_turf_side"
+  }
+}

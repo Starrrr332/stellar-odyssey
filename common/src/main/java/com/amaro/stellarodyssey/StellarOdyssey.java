@@ -5,6 +5,7 @@ import com.amaro.stellarodyssey.network.ModNetworking;
 import com.amaro.stellarodyssey.registry.ModBlocks;
 import com.amaro.stellarodyssey.registry.ModCreativeTabs;
 import com.amaro.stellarodyssey.registry.ModItems;
+import com.amaro.stellarodyssey.world.PlanetaryGravityManager;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public final class StellarOdyssey {
 
         ModNetworking.init();
         LifeSupportManager.init();
+        PlanetaryGravityManager.init();
 
         LOGGER.info("Stellar Odyssey initialised - preparing for launch.");
     }

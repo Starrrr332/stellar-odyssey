@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "minecraft:the_end"
+    "minecraft:the_end",
+    "stellarodyssey:alien_planet"
   ]
 }

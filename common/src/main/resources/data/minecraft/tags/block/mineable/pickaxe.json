@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "stellarodyssey:alien_ore"
+    "stellarodyssey:alien_ore",
+    "stellarodyssey:alien_stone"
   ]
 }

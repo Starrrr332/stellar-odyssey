@@ -23,6 +23,14 @@ public final class ModItems {
             props -> new BlockItem(ModBlocks.ALIEN_ORE.get(), props.useBlockDescriptionPrefix()),
             new Item.Properties());
 
+    public static final RegistrySupplier<BlockItem> ALIEN_STONE = register("alien_stone",
+            props -> new BlockItem(ModBlocks.ALIEN_STONE.get(), props.useBlockDescriptionPrefix()),
+            new Item.Properties());
+
+    public static final RegistrySupplier<BlockItem> ALIEN_TURF = register("alien_turf",
+            props -> new BlockItem(ModBlocks.ALIEN_TURF.get(), props.useBlockDescriptionPrefix()),
+            new Item.Properties());
+
     // --- Items -------------------------------------------------------------------------------
     /** Portable O2 reserve. Durability = stored oxygen units (full when undamaged). */
     public static final RegistrySupplier<OxygenTankItem> OXYGEN_TANK = register("oxygen_tank", OxygenTankItem::new,

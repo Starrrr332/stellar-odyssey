@@ -1,6 +1,8 @@
 {
   "itemGroup.stellarodyssey.main": "Stellar Odyssey",
   "block.stellarodyssey.alien_ore": "Mineral Alienígena",
+  "block.stellarodyssey.alien_stone": "Piedra Alienígena",
+  "block.stellarodyssey.alien_turf": "Césped Alienígena",
   "item.stellarodyssey.oxygen_tank": "Tanque de Oxígeno",
   "item.stellarodyssey.spacesuit_helmet": "Casco de Traje Espacial",
   "item.stellarodyssey.spacesuit_chestplate": "Pechera de Traje Espacial",
@@ -8,6 +10,8 @@
   "item.stellarodyssey.spacesuit_boots": "Botas de Traje Espacial",
   "tooltip.stellarodyssey.oxygen": "Oxígeno: %s / %s unidades",
   "tooltip.stellarodyssey.alien_ore": "Irradia una energía cristalina desconocida.",
+  "tooltip.stellarodyssey.alien_stone": "Silicato ígneo denso de una corteza extraterrestre.",
+  "tooltip.stellarodyssey.alien_turf": "Capa vegetal xenomórfica bioluminiscente.",
   "tooltip.stellarodyssey.spacesuit_helmet.desc": "Visor Presurizado y Escáner Ambiental",
   "tooltip.stellarodyssey.spacesuit_helmet.sub": "Muestra telemetría de soporte vital y sella la cabeza.",
   "tooltip.stellarodyssey.spacesuit_chestplate.desc": "Colector de Oxígeno y Regulador Atmosférico",

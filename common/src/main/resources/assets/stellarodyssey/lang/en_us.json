@@ -1,6 +1,8 @@
 {
   "itemGroup.stellarodyssey.main": "Stellar Odyssey",
   "block.stellarodyssey.alien_ore": "Alien Ore",
+  "block.stellarodyssey.alien_stone": "Alien Stone",
+  "block.stellarodyssey.alien_turf": "Alien Turf",
   "item.stellarodyssey.oxygen_tank": "Oxygen Tank",
   "item.stellarodyssey.spacesuit_helmet": "Spacesuit Helmet",
   "item.stellarodyssey.spacesuit_chestplate": "Spacesuit Chestplate",
@@ -8,6 +10,8 @@
   "item.stellarodyssey.spacesuit_boots": "Spacesuit Boots",
   "tooltip.stellarodyssey.oxygen": "Oxygen: %s / %s units",
   "tooltip.stellarodyssey.alien_ore": "Radiates an unknown crystalline energy.",
+  "tooltip.stellarodyssey.alien_stone": "Dense igneous silicate from an extraterrestrial crust.",
+  "tooltip.stellarodyssey.alien_turf": "Bioluminescent xenomorphic ground cover.",
   "tooltip.stellarodyssey.spacesuit_helmet.desc": "Pressurized Visor & Environmental Scanner",
   "tooltip.stellarodyssey.spacesuit_helmet.sub": "Displays life support telemetry and seals head unit.",
   "tooltip.stellarodyssey.spacesuit_chestplate.desc": "Oxygen Manifold & Atmospheric Regulator",

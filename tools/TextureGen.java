@@ -26,6 +26,8 @@ public class TextureGen {
         Path project = Path.of(args.length > 0 ? args[0] : ".").toAbsolutePath().normalize();
         assets = project.resolve("common/src/main/resources/assets/stellarodyssey");
         alienOre();
+        alienStone();
+        alienTurf();
         oxygenTank();
         spacesuit();
         icon();
@@ -90,6 +92,67 @@ public class TextureGen {
 
         write(base, "textures/block/alien_ore.png");
         write(glow, "textures/block/alien_ore_emissive.png");
+    }
+
+    // ------------------------------------------------------------------------------------
+    //  Alien Stone: Dense dark basaltic crust of exoplanets
+    // ------------------------------------------------------------------------------------
+    static void alienStone() throws IOException {
+        BufferedImage base = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        int[] stone = {0xFF161226, 0xFF1F1A33, 0xFF282240, 0xFF322A4E, 0xFF3D335E};
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 16; x++) {
+                double n = 0.5 * valueNoise(x / 3.0, y / 3.0, 42) + 0.5 * valueNoise(x / 1.5, y / 1.5, 77);
+                base.setRGB(x, y, stone[clamp((int) (n * stone.length), 0, stone.length - 1)]);
+            }
+        }
+        write(base, "textures/block/alien_stone.png");
+    }
+
+    // ------------------------------------------------------------------------------------
+    //  Alien Turf: Bioluminescent neon surface cover
+    // ------------------------------------------------------------------------------------
+    static void alienTurf() throws IOException {
+        BufferedImage top = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage topGlow = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage side = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage sideGlow = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+
+        int[] turfBase = {0xFF003840, 0xFF004D54, 0xFF00666B, 0xFF008082};
+        int[] neonCyan = {0xFF00E5FF, 0xFF76FFFF, 0xFFE0F7FA};
+        int[] stone = {0xFF161226, 0xFF1F1A33, 0xFF282240};
+
+        // Top face
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 16; x++) {
+                double n = valueNoise(x / 2.5, y / 2.5, 99);
+                top.setRGB(x, y, turfBase[clamp((int) (n * turfBase.length), 0, turfBase.length - 1)]);
+                // Spore glow dots
+                if ((x * 7 + y * 13) % 11 == 0) {
+                    topGlow.setRGB(x, y, neonCyan[(x + y) % neonCyan.length]);
+                }
+            }
+        }
+
+        // Side face: turf hanging over stone
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 16; x++) {
+                int drop = 3 + (int) (2.5 * Math.sin(x * 1.2));
+                if (y <= drop) {
+                    side.setRGB(x, y, turfBase[clamp((x + y) % turfBase.length, 0, turfBase.length - 1)]);
+                    if (y == drop && (x % 3 == 0)) {
+                        sideGlow.setRGB(x, y, neonCyan[0]);
+                    }
+                } else {
+                    side.setRGB(x, y, stone[(x * 3 + y * 7) % stone.length]);
+                }
+            }
+        }
+
+        write(top, "textures/block/alien_turf_top.png");
+        write(topGlow, "textures/block/alien_turf_top_emissive.png");
+        write(side, "textures/block/alien_turf_side.png");
+        write(sideGlow, "textures/block/alien_turf_side_emissive.png");
     }
 
     // ------------------------------------------------------------------------------------
