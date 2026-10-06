@@ -3,6 +3,7 @@ package com.amaro.stellarodyssey.registry;
 import com.amaro.stellarodyssey.StellarOdyssey;
 import com.amaro.stellarodyssey.item.OxygenTankItem;
 import com.amaro.stellarodyssey.item.SpacesuitItem;
+import com.amaro.stellarodyssey.item.StarshipItem;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
@@ -54,6 +55,10 @@ public final class ModItems {
     public static final RegistrySupplier<SpacesuitItem> SPACESUIT_BOOTS = register("spacesuit_boots",
             props -> new SpacesuitItem(ArmorType.BOOTS, props),
             new Item.Properties().rarity(Rarity.RARE));
+
+    // --- Vehicles ----------------------------------------------------------------------------
+    public static final RegistrySupplier<StarshipItem> STARSHIP = register("starship", StarshipItem::new,
+            new Item.Properties().rarity(Rarity.EPIC).stacksTo(1));
 
     private ModItems() {
     }

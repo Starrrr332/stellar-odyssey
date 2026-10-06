@@ -4,6 +4,7 @@ import com.amaro.stellarodyssey.lifesupport.LifeSupportManager;
 import com.amaro.stellarodyssey.network.ModNetworking;
 import com.amaro.stellarodyssey.registry.ModBlocks;
 import com.amaro.stellarodyssey.registry.ModCreativeTabs;
+import com.amaro.stellarodyssey.registry.ModEntities;
 import com.amaro.stellarodyssey.registry.ModItems;
 import com.amaro.stellarodyssey.world.PlanetaryGravityManager;
 import net.minecraft.resources.Identifier;
@@ -25,6 +26,7 @@ public final class StellarOdyssey {
         ModCreativeTabs.register();
         ModBlocks.register();
         ModItems.register();
+        ModEntities.register();
 
         ModNetworking.init();
         LifeSupportManager.init();

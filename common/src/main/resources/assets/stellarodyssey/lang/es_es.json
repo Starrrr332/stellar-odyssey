@@ -8,6 +8,8 @@
   "item.stellarodyssey.spacesuit_chestplate": "Pechera de Traje Espacial",
   "item.stellarodyssey.spacesuit_leggings": "Grebas de Traje Espacial",
   "item.stellarodyssey.spacesuit_boots": "Botas de Traje Espacial",
+  "item.stellarodyssey.starship": "Nave de Exploración Espacial",
+  "entity.stellarodyssey.starship": "Nave Espacial",
   "tooltip.stellarodyssey.oxygen": "Oxígeno: %s / %s unidades",
   "tooltip.stellarodyssey.alien_ore": "Irradia una energía cristalina desconocida.",
   "tooltip.stellarodyssey.alien_stone": "Silicato ígneo denso de una corteza extraterrestre.",

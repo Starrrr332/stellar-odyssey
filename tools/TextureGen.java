@@ -30,6 +30,7 @@ public class TextureGen {
         alienTurf();
         oxygenTank();
         spacesuit();
+        starship();
         icon();
         System.out.println("Textures written to " + assets);
     }
@@ -407,6 +408,110 @@ public class TextureGen {
         write(l1, "textures/entity/equipment/humanoid/spacesuit.png");
         write(l1Glow, "textures/entity/equipment/humanoid/spacesuit_emissive.png");
         write(l2, "textures/entity/equipment/humanoid_leggings/spacesuit.png");
+    }
+
+    // ------------------------------------------------------------------------------------
+    //  Starship: Sleek exploratory spacecraft with emissive ion engines and cockpit
+    // ------------------------------------------------------------------------------------
+    static void starship() throws IOException {
+        starshipItem();
+        starshipEntity();
+    }
+
+    static void starshipItem() throws IOException {
+        BufferedImage base = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage glow = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+        int[] hull = {0xFFF1F5F9, 0xFFCBD5E1, 0xFF94A3B8, 0xFF475569};
+        int darkTrim = 0xFF1E293B;
+        int cyanIon = 0xFF00E5FF;
+        int canopyGlass = 0xFF006064;
+
+        // Delta wing starship silhouette (facing up)
+        for (int y = 1; y <= 14; y++) {
+            int span = (y <= 4) ? (y / 2) : Math.min(6, (y - 2));
+            for (int dx = -span; dx <= span; dx++) {
+                int x = 7 + dx;
+                int shade = Math.abs(dx) <= 1 ? 0 : (Math.abs(dx) <= 3 ? 1 : 2);
+                base.setRGB(x, y, hull[shade]);
+            }
+        }
+        // Cockpit canopy (rows 4..7, center)
+        for (int y = 4; y <= 7; y++) {
+            base.setRGB(7, y, canopyGlass);
+            glow.setRGB(7, y, (y == 4 || y == 5) ? 0xFFE0F7FA : cyanIon);
+        }
+        // Twin rear ion thrusters (row 14, cols 5, 9)
+        base.setRGB(5, 14, darkTrim);
+        base.setRGB(9, 14, darkTrim);
+        base.setRGB(5, 15, cyanIon);
+        base.setRGB(9, 15, cyanIon);
+        glow.setRGB(5, 15, cyanIon);
+        glow.setRGB(9, 15, cyanIon);
+
+        outline(base, darkTrim);
+        write(base, "textures/item/starship.png");
+        write(glow, "textures/item/starship_emissive.png");
+    }
+
+    static void starshipEntity() throws IOException {
+        BufferedImage base = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage glow = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+
+        int hullWhite = 0xFFE2E8F0;
+        int hullSlate = 0xFF94A3B8;
+        int darkPlating = 0xFF1E293B;
+        int ionCyan = 0xFF00E5FF;
+        int glassCyan = 0xFF00838F;
+
+        // 1. Main Fuselage (0, 0 to 64, 40)
+        for (int y = 0; y < 40; y++) {
+            for (int x = 0; x < 64; x++) {
+                boolean edge = (x % 8 == 0 || y % 8 == 0);
+                base.setRGB(x, y, edge ? darkPlating : (x < 32 ? hullWhite : hullSlate));
+            }
+        }
+
+        // 2. Nose Cone (0, 40 to 32, 54)
+        for (int y = 40; y < 54; y++) {
+            for (int x = 0; x < 32; x++) {
+                base.setRGB(x, y, darkPlating);
+            }
+        }
+
+        // 3. Canopy (0, 54 to 32, 70)
+        for (int y = 54; y < 70; y++) {
+            for (int x = 0; x < 32; x++) {
+                base.setRGB(x, y, glassCyan);
+                glow.setRGB(x, y, ((x + y) % 6 == 0) ? 0xFFE0F7FA : ionCyan);
+            }
+        }
+
+        // 4. Wings (40, 40 to 100, 70)
+        for (int y = 40; y < 70; y++) {
+            for (int x = 40; x < 100; x++) {
+                base.setRGB(x, y, (x > 80 || y > 60) ? darkPlating : hullWhite);
+            }
+        }
+
+        // 5. Engines (72, 0 to 104, 30) - with emissive exhaust rings
+        for (int y = 0; y < 30; y++) {
+            for (int x = 72; x < 104; x++) {
+                base.setRGB(x, y, darkPlating);
+                if (y >= 20) {
+                    glow.setRGB(x, y, ionCyan);
+                }
+            }
+        }
+
+        // 6. Fins (104, 0 to 128, 30)
+        for (int y = 0; y < 30; y++) {
+            for (int x = 104; x < 128; x++) {
+                base.setRGB(x, y, hullSlate);
+            }
+        }
+
+        write(base, "textures/entity/starship/starship.png");
+        write(glow, "textures/entity/starship/starship_emissive.png");
     }
 
     // ------------------------------------------------------------------------------------

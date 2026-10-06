@@ -8,6 +8,8 @@
   "item.stellarodyssey.spacesuit_chestplate": "Spacesuit Chestplate",
   "item.stellarodyssey.spacesuit_leggings": "Spacesuit Leggings",
   "item.stellarodyssey.spacesuit_boots": "Spacesuit Boots",
+  "item.stellarodyssey.starship": "Exploratory Starship",
+  "entity.stellarodyssey.starship": "Starship",
   "tooltip.stellarodyssey.oxygen": "Oxygen: %s / %s units",
   "tooltip.stellarodyssey.alien_ore": "Radiates an unknown crystalline energy.",
   "tooltip.stellarodyssey.alien_stone": "Dense igneous silicate from an extraterrestrial crust.",
