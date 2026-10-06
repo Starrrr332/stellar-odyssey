@@ -1,11 +1,9 @@
 {
-  "type": "minecraft:furnace",
-  "category": "misc",
+  "type": "minecraft:smelting",
   "cookingtime": 200,
   "experience": 4.5,
   "ingredient": "stellarodyssey:raw_celidium",
   "result": {
-    "id": "stellarodyssey:celidium_ingot",
-    "count": 1
+    "id": "stellarodyssey:celidium_ingot"
   }
 }

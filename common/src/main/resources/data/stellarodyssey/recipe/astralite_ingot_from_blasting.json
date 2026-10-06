@@ -1,11 +1,9 @@
 {
-  "type": "minecraft:blast_furnace",
-  "category": "misc",
-  "cookingtime": 100,
+  "type": "minecraft:blasting",
+  "cookingtime": 200,
   "experience": 16.5,
   "ingredient": "stellarodyssey:raw_astralite",
   "result": {
-    "id": "stellarodyssey:astralite_ingot",
-    "count": 1
+    "id": "stellarodyssey:astralite_ingot"
   }
 }
