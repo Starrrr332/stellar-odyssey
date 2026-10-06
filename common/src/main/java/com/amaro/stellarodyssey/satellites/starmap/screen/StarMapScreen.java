@@ -2,7 +2,11 @@ package com.amaro.stellarodyssey.satellites.starmap.screen;
 
 import com.amaro.stellarodyssey.api.celestial.ICelestialBody;
 import com.amaro.stellarodyssey.api.celestial.ICelestialCatalog;
+import com.amaro.stellarodyssey.entity.RocketEntity;
+import com.amaro.stellarodyssey.network.SelectDestinationPayload;
 import com.amaro.stellarodyssey.satellites.starmap.render.StarMapSkyRenderer;
+import dev.architectury.networking.NetworkManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -149,6 +153,20 @@ public class StarMapScreen extends Screen {
 
     private void plotCourse() {
         if (this.selectedBody != null) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null && mc.player.getVehicle() instanceof RocketEntity rocket) {
+                try {
+                    NetworkManager.sendToServer(new SelectDestinationPayload(
+                            rocket.getId(),
+                            this.selectedBody.dimensionKey().identifier().toString()));
+                    this.navigationStatusMessage = Component.literal(
+                            "COURSE PLOTTED: " + this.selectedBody.name().toUpperCase() + " [" + this.selectedBody.starSystemName() + "] - LAUNCH SEQUENCE STARTING");
+                    this.onClose();
+                    return;
+                } catch (Exception ignored) {
+                    // Fall through to visual-only plotting
+                }
+            }
             this.navigationStatusMessage = Component.literal(
                     "COURSE PLOTTED: " + this.selectedBody.name().toUpperCase() + " [" + this.selectedBody.starSystemName() + "]");
         } else {

@@ -38,5 +38,35 @@
         "attenuation_distance": 12
       }
     ]
+  },
+  "entity.rocket.launch_beep": {
+    "subtitle": "subtitles.stellarodyssey.launch_beep",
+    "sounds": [
+      {
+        "name": "stellarodyssey:block/alien_ore/resonate",
+        "type": "sound",
+        "attenuation_distance": 32
+      }
+    ]
+  },
+  "entity.rocket.engine_ignition": {
+    "subtitle": "subtitles.stellarodyssey.engine_ignition",
+    "sounds": [
+      {
+        "name": "stellarodyssey:entity/starship/thrust",
+        "type": "sound",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "entity.rocket.warp_whoosh": {
+    "subtitle": "subtitles.stellarodyssey.warp_whoosh",
+    "sounds": [
+      {
+        "name": "stellarodyssey:ambient/alien_world",
+        "type": "sound",
+        "attenuation_distance": 32
+      }
+    ]
   }
 }

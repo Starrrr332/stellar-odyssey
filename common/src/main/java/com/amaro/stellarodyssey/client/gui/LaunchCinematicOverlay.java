@@ -64,7 +64,7 @@ public final class LaunchCinematicOverlay {
             case ASCENT, ATMOSPHERE_EXIT -> drawAscent(gui, font, w, h, phase, ticks, progress);
             case ORBIT -> drawOrbit(gui, font, w, h);
             case WARP_CHARGE -> drawWarpCharge(gui, font, w, h, progress);
-            case WARP -> gui.fill(0, 0, w, h, 0xFFE0F7FA);
+            case WARP -> drawWarpTunnel(gui, w, h, ticks);
             case ARRIVAL -> drawArrival(gui, font, w, h, progress);
             case LANDING -> drawLanding(gui, font, w, h, progress);
             default -> {
@@ -105,6 +105,13 @@ public final class LaunchCinematicOverlay {
 
     private static void drawAscent(GuiGraphicsExtractor gui, Font font, int w, int h,
                                    RocketFlightPhase phase, int ticks, float progress) {
+        if (phase == RocketFlightPhase.ATMOSPHERE_EXIT) {
+            // Atmospheric haze lerps from sky blue toward deep space as the rocket crosses the boundary.
+            int skyBlue = (int) (120 * (1F - progress));
+            int spaceBlack = (int) (180 * progress);
+            int skyColor = (Math.min(255, spaceBlack) << 24) | (skyBlue << 16) | (skyBlue << 8);
+            gui.fill(0, 0, w, h, skyColor);
+        }
         // Radial speed streaks rushing outward, longest toward mid-screen.
         int streakColor = 0x33E0F7FA;
         int count = 28;
@@ -156,6 +163,29 @@ public final class LaunchCinematicOverlay {
         closeVignette(gui, w, h, 0x88000000);
         gui.centeredText(font, Component.literal("TOUCHDOWN"), w / 2, h / 2 - 16, AMBER);
         gui.centeredText(font, Component.literal("DESCENT SETTLE"), w / 2, h / 2, TITLE_TEXT);
+    }
+
+    /** Full-screen warp tunnel: bright streaks rushing outward plus a colored vignette/collapsing rings. */
+    private static void drawWarpTunnel(GuiGraphicsExtractor gui, int w, int h, int ticks) {
+        gui.fill(0, 0, w, h, 0xFF020610);
+        // Vertical hyper-tunnel streaks streaming toward the screen.
+        int streakColor = 0x55DB72FF;
+        int count = 36;
+        for (int i = 0; i < count; i++) {
+            int x = (int) ((i + 0.5F) * w / count);
+            int grow = (int) (h * 0.25F);
+            int offset = (int) ((ticks * (8L + (i % 5) * 4L)) % Math.max(1, h / 2));
+            gui.fill(x, offset, x + 2, offset + grow, streakColor);
+            gui.fill(x, h - offset - grow, x + 2, h - offset, streakColor);
+        }
+        // Collapsing bright ring rings
+        int cx = w / 2;
+        int cy = h / 2;
+        for (int ring = 1; ring <= 3; ring++) {
+            int r = Math.max(10, (int) (8.0F + ring * 24.0F - (ticks % 12) * 2.0F));
+            gui.outline(cx - r, cy - r, r * 2, r * 2, 0x88E0F7FA);
+        }
+        gui.centeredText(Minecraft.getInstance().font, Component.literal("WARP JUMP ENGAGED"), cx, cy - 6, WHITE);
     }
 
     // --- Status readout -------------------------------------------------------------------

@@ -1,20 +1,26 @@
 package com.amaro.stellarodyssey.entity;
 
 import com.amaro.stellarodyssey.block.LaunchPadBlock;
+import com.amaro.stellarodyssey.network.FlightPhasePayload;
 import com.amaro.stellarodyssey.registry.ModEntities;
 import com.amaro.stellarodyssey.registry.ModItems;
 import com.amaro.stellarodyssey.registry.ModSoundEvents;
 import com.amaro.stellarodyssey.registry.tiers.RocketTier;
 import com.amaro.stellarodyssey.registry.tiers.RocketTierRegistry;
+import com.amaro.stellarodyssey.registry.tiers.RocketTiers;
 import com.amaro.stellarodyssey.rocket.RocketFlightPhase;
 import com.amaro.stellarodyssey.rocket.RocketFlightSchedule;
+import com.amaro.stellarodyssey.satellites.starmap.StarMapSatellite;
+import dev.architectury.networking.NetworkManager;
 import com.amaro.stellarodyssey.world.ModDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -63,6 +69,7 @@ public class RocketEntity extends VehicleEntity {
 
     /** Server-only override of the destination; defaults to the tier's destination. */
     private ResourceKey<Level> destination;
+    private ResourceKey<Level> targetDestination;
 
     private RocketFlightSchedule scheduleCache;
     private int scheduleCacheTier = -1;
@@ -97,6 +104,11 @@ public class RocketEntity extends VehicleEntity {
                 : (input.getBooleanOr("Launching", false) ? RocketFlightPhase.COUNTDOWN : RocketFlightPhase.IDLE);
         this.setPhase(phase);
         this.setPhaseTicks(input.getIntOr("LaunchTicks", 0));
+
+        input.getString("TargetDestination").ifPresent(dest -> {
+            this.targetDestination = ResourceKey.create(Registries.DIMENSION, Identifier.parse(dest));
+            this.destination = this.targetDestination;
+        });
     }
 
     @Override
@@ -104,6 +116,9 @@ public class RocketEntity extends VehicleEntity {
         output.putInt("Tier", this.getTierLevel());
         output.putInt("Phase", this.getPhase().ordinal());
         output.putInt("LaunchTicks", this.getPhaseTicks());
+        if (this.targetDestination != null) {
+            output.putString("TargetDestination", this.targetDestination.identifier().toString());
+        }
     }
 
     @Override
@@ -125,17 +140,31 @@ public class RocketEntity extends VehicleEntity {
         return RocketTierRegistry.getTier(this.getTierLevel());
     }
 
-    /** Resolved destination: an explicit override if set, otherwise the tier default. */
-    public ResourceKey<Level> getDestination() {
+    /** Resolved target destination: an explicit override if set, otherwise the tier default. */
+    public ResourceKey<Level> getTargetDestination() {
+        if (this.targetDestination != null) {
+            return this.targetDestination;
+        }
         if (this.destination != null) {
             return this.destination;
         }
         return this.getTier().map(RocketTier::destination).orElse(ModDimensions.NEXUS_MOON);
     }
 
+    /** Sets the target destination (used by the StarMap destination picker). */
+    public void setTargetDestination(ResourceKey<Level> destination) {
+        this.targetDestination = destination;
+        this.destination = destination;
+    }
+
+    /** Resolved destination: an explicit override if set, otherwise the tier default. */
+    public ResourceKey<Level> getDestination() {
+        return getTargetDestination();
+    }
+
     /** Sets an explicit destination (used by the StarMap destination picker). */
     public void setDestination(ResourceKey<Level> destination) {
-        this.destination = destination;
+        setTargetDestination(destination);
     }
 
     // --- Flight state machine -------------------------------------------------------------
@@ -146,6 +175,10 @@ public class RocketEntity extends VehicleEntity {
 
     public void setPhase(RocketFlightPhase phase) {
         this.entityData.set(DATA_PHASE, phase.ordinal());
+        // Mirror authoritative phase changes to the rider via the S2C flight-phase packet.
+        if (!this.level().isClientSide() && this.getFirstPassenger() instanceof ServerPlayer sp) {
+            NetworkManager.sendToPlayer(sp, new FlightPhasePayload(this.getId(), phase, this.getPhaseTicks()));
+        }
     }
 
     public int getPhaseTicks() {
@@ -238,7 +271,12 @@ public class RocketEntity extends VehicleEntity {
             }
             case IGNITION -> {
                 this.spawnExhaustParticles(1.0, 0.0);
+                this.spawnIgnitionDustRing();
                 this.playEngineSound(0.7F, ticks);
+                if (ticks == 1 && this.level() instanceof ServerLevel serverLevel) {
+                    serverLevel.playSound(null, this.blockPosition(), ModSoundEvents.ENGINE_IGNITION.get(),
+                            SoundSource.AMBIENT, 1.0F, 0.9F);
+                }
                 if (schedule.isComplete(phase, ticks)) {
                     this.advancePhase();
                 }
@@ -255,6 +293,7 @@ public class RocketEntity extends VehicleEntity {
             }
             case ATMOSPHERE_EXIT -> {
                 this.spawnExhaustParticles(1.0, -0.7);
+                this.spawnTropopauseStreaks();
                 this.applyAscentThrust();
                 this.playEngineSound(1.0F, ticks);
                 if (schedule.isComplete(phase, ticks)) {
@@ -268,6 +307,10 @@ public class RocketEntity extends VehicleEntity {
                 }
             }
             case WARP_CHARGE -> {
+                if (ticks == 1 && this.level() instanceof ServerLevel serverLevel) {
+                    serverLevel.playSound(null, this.blockPosition(), ModSoundEvents.WARP_WHOOSH.get(),
+                            SoundSource.AMBIENT, 1.0F, 1.0F);
+                }
                 if (schedule.isComplete(phase, ticks)) {
                     this.advancePhase();
                 }
@@ -278,6 +321,7 @@ public class RocketEntity extends VehicleEntity {
             }
             case ARRIVAL -> {
                 this.applyDescent();
+                this.spawnReentryParticles();
                 if (schedule.isComplete(phase, ticks)) {
                     this.advancePhase();
                 }
@@ -327,6 +371,9 @@ public class RocketEntity extends VehicleEntity {
                     sp.sendSystemMessage(Component.translatable("message.stellarodyssey.launch_countdown", secondsLeft));
                 }
             });
+            // Countdown beep: rising pulse each second of the countdown.
+            serverLevel.playSound(null, this.blockPosition(), ModSoundEvents.LAUNCH_COUNTDOWN_BEEP.get(),
+                    SoundSource.AMBIENT, 1.0F, 0.8F + (countdownTicks - ticks) / (float) countdownTicks * 0.4F);
         }
     }
 
@@ -341,9 +388,7 @@ public class RocketEntity extends VehicleEntity {
     }
 
     private void spawnExhaustParticles(double spreadScale, double smokeYOffset) {
-        if (!this.level().isClientSide()) {
-            return;
-        }
+        // Emit on server so the broadcast propagates to the riders' clients.
         int count = (int) Math.round(6 * spreadScale);
         for (int i = 0; i < count; i++) {
             double ox = (this.random.nextDouble() - 0.5) * 0.8 * spreadScale;
@@ -353,6 +398,46 @@ public class RocketEntity extends VehicleEntity {
         }
         this.level().addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, this.getX(), this.getY() - 0.5 + smokeYOffset,
                 this.getZ(), 0.0, 0.1, 0.0);
+    }
+
+    /** Radial dust ring discharged at IGNITION (shockwave across the launch pad). */
+    private void spawnIgnitionDustRing() {
+        if (!(this.level() instanceof ServerLevel level)) {
+            return;
+        }
+        BlockPos center = this.blockPosition();
+        for (int ring = 0; ring < 3; ring++) {
+            int r = 2 + ring;
+            for (int angle = 0; angle < 16; angle++) {
+                double a = angle * Math.PI * 2.0 / 16;
+                double x = center.getX() + 0.5 + Math.cos(a) * r;
+                double z = center.getZ() + 0.5 + Math.sin(a) * r;
+                level.addParticle(ParticleTypes.CLOUD, x, center.getY(), z, 0.0, 0.2, 0.0);
+            }
+        }
+    }
+
+    /** Radial streaks whipping past the rocket as it crosses the tropopause. */
+    private void spawnTropopauseStreaks() {
+        Level level = this.level();
+        for (int i = 0; i < 4; i++) {
+            double angle = (Math.PI * 2.0 / 4) * i + this.random.nextDouble();
+            double r = 2.0;
+            level.addParticle(ParticleTypes.CLOUD, this.getX() + Math.cos(angle) * r, this.getY() + 1.0,
+                    this.getZ() + Math.sin(angle) * r, 0.0, 0.2, 0.0);
+        }
+    }
+
+    /** Re-entry flames and ash while descending into the destination atmosphere. */
+    private void spawnReentryParticles() {
+        Level level = this.level();
+        for (int i = 0; i < 3; i++) {
+            double ox = (this.random.nextDouble() - 0.5) * 0.8;
+            double oz = (this.random.nextDouble() - 0.5) * 0.8;
+            level.addParticle(ParticleTypes.FLAME, this.getX() + ox, this.getY() - 0.4,
+                    this.getZ() + oz, 0.0, -0.25, 0.0);
+        }
+        level.addParticle(ParticleTypes.LARGE_SMOKE, this.getX(), this.getY() - 0.4, this.getZ(), 0.0, 0.15, 0.0);
     }
 
     private void warpToDestination() {
@@ -380,25 +465,75 @@ public class RocketEntity extends VehicleEntity {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand, Vec3 hitPos) {
-        if (this.level().isClientSide()) {
-            return InteractionResult.SUCCESS;
-        }
         if (this.getPhase() != RocketFlightPhase.IDLE) {
             return InteractionResult.SUCCESS;
         }
-        if (this.getPassengers().isEmpty()) {
-            player.startRiding(this);
-            return InteractionResult.SUCCESS;
-        }
-        // A player is already seated: validate the pad, then begin the launch sequence.
+
+        // Validate launch pad
         if (!this.validateLaunchPad(player)) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
-        this.beginLaunchSequence();
+
+        // Mount player if not already riding
+        if (player.getVehicle() != this) {
+            if (this.getPassengers().isEmpty()) {
+                player.startRiding(this);
+            }
+        }
+
+        // Open StarMap GUI on client side with rocket context
+        if (this.level().isClientSide()) {
+            StarMapSatellite.openScreen(StarMapSatellite.getActiveCatalog(), this.getTierLevel(), this.getId());
+        }
+
         return InteractionResult.SUCCESS;
     }
 
-    private boolean validateLaunchPad(Player player) {
+    /**
+     * Server-side destination selection handler called upon receiving SelectDestinationPayload.
+     * Validates vehicle riding status, launch pad integrity, launch phase, and tier requirements.
+     *
+     * @param player The initiating server player.
+     * @param targetDest The chosen destination dimension.
+     * @return true if destination is accepted and launch sequence initiated; false otherwise.
+     */
+    public boolean handleSelectDestination(ServerPlayer player, ResourceKey<Level> targetDest) {
+        // 1. Validate player is riding the rocket
+        if (player.getVehicle() != this) {
+            this.sendMessage(player, Component.translatableWithFallback(
+                    "message.stellarodyssey.not_riding_rocket",
+                    "You must be seated inside the rocket to select a launch destination!"));
+            return false;
+        }
+
+        // 2. Validate rocket is on a complete launch pad and not currently launching
+        if (this.isLaunching() || this.getPhase() != RocketFlightPhase.IDLE) {
+            this.sendMessage(player, Component.translatableWithFallback(
+                    "message.stellarodyssey.rocket_already_launching",
+                    "Rocket launch sequence is already in progress!"));
+            return false;
+        }
+
+        if (!this.validateLaunchPad(player)) {
+            return false;
+        }
+
+        // 3. Validate isDestinationAllowed
+        if (!RocketTiers.isDestinationAllowed(this.getTierLevel(), targetDest)) {
+            int req = RocketTiers.getRequiredTier(targetDest);
+            this.sendMessage(player, Component.translatableWithFallback(
+                    "message.stellarodyssey.tier_insufficient",
+                    "Rocket Tier " + this.getTierLevel() + " cannot reach destination! (Requires Tier " + (req > 0 ? req : "Unknown") + ")"));
+            return false;
+        }
+
+        // 4. If valid, set destination, start countdown/launch, play thrust sound
+        this.setTargetDestination(targetDest);
+        this.beginLaunchSequence();
+        return true;
+    }
+
+    public boolean validateLaunchPad(Player player) {
         BlockPos pad = this.findPadBelow();
         if (pad == null) {
             this.sendMessage(player, Component.translatable("message.stellarodyssey.need_launch_pad"));

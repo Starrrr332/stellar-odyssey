@@ -76,4 +76,16 @@ public record RocketTier(
                 atmosphereExitAltitude
         );
     }
+
+    public static int getRequiredTier(ResourceKey<Level> destination) {
+        return RocketTiers.getRequiredTier(destination);
+    }
+
+    public static int minTierForDestination(ResourceKey<Level> destination) {
+        return RocketTiers.getRequiredTier(destination);
+    }
+
+    public static boolean isDestinationAllowed(int tierLevel, ResourceKey<Level> destination) {
+        return RocketTiers.isDestinationAllowed(tierLevel, destination);
+    }
 }

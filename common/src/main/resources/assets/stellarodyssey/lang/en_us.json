@@ -22,7 +22,7 @@
   "tooltip.stellarodyssey.spacesuit_leggings.sub": "Deflects cosmic ray hazards and extreme thermal flux.",
   "tooltip.stellarodyssey.spacesuit_boots.desc": "Gravitational Dampeners & Micro-Thrusters",
   "tooltip.stellarodyssey.spacesuit_boots.sub": "Absorbs crater impacts and stabilizes low-gravity falls.",
-  "tooltip.stellarodyssey.spacesuit_set_bonus": "\u25c6 Full Set: Hermetic Seal (Vacuum & Decompression Protection)",
+  "tooltip.stellarodyssey.spacesuit_set_bonus": "◆ Full Set: Hermetic Seal (Vacuum & Decompression Protection)",
   "block.stellarodyssey.assembly_table": "Rocket Assembly Table",
   "block.stellarodyssey.launch_pad": "Launch Pad",
   "block.stellarodyssey.launch_pad_base": "Launch Pad Base",
@@ -83,5 +83,8 @@
   "item.stellarodyssey.astralite_ingot": "Astralite Ingot",
   "tooltip.stellarodyssey.celidium_ore": "Amber crystals of scorched desert worlds.",
   "tooltip.stellarodyssey.verdantite_ore": "Pulsing emerald veins of toxic jungles.",
-  "tooltip.stellarodyssey.astralite_ore": "Frozen celestial light from deep-ocean asteroids."
+  "tooltip.stellarodyssey.astralite_ore": "Frozen celestial light from deep-ocean asteroids.",
+  "subtitles.stellarodyssey.launch_beep": "Launch countdown beep",
+  "subtitles.stellarodyssey.engine_ignition": "Engine ignition",
+  "subtitles.stellarodyssey.warp_whoosh": "Hyperdrive warp whoosh"
 }

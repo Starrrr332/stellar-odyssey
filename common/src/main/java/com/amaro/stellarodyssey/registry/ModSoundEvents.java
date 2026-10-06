@@ -29,6 +29,18 @@ public final class ModSoundEvents {
     public static final RegistrySupplier<SoundEvent> RESONANCE_CRYSTAL =
             register("block.alien_ore.resonate");
 
+    /** Rising beep repeated during pre-flight countdown. */
+    public static final RegistrySupplier<SoundEvent> LAUNCH_COUNTDOWN_BEEP =
+            register("entity.rocket.launch_beep");
+
+    /** Engine spool-up at IGNITION. */
+    public static final RegistrySupplier<SoundEvent> ENGINE_IGNITION =
+            register("entity.rocket.engine_ignition");
+
+    /** Whoosh of the hyperdrive as the rocket bends space (WARP). */
+    public static final RegistrySupplier<SoundEvent> WARP_WHOOSH =
+            register("entity.rocket.warp_whoosh");
+
     private ModSoundEvents() {
     }
 
