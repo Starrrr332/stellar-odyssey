@@ -12,6 +12,9 @@
     "main": ["com.amaro.stellarodyssey.fabric.StellarOdysseyFabric"],
     "client": ["com.amaro.stellarodyssey.fabric.client.StellarOdysseyFabricClient"]
   },
+  "mixins": [
+    "stellarodyssey.fabric.mixins.json"
+  ],
   "depends": {
     "java": ">=25",
     "minecraft": "~${minecraft_version}",
