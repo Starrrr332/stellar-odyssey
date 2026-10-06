@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stellarodyssey:item/oxygen_tank",
+    "layer1": "stellarodyssey:item/oxygen_tank_emissive"
+  }
+}

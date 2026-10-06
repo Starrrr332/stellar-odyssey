@@ -1,0 +1,15 @@
+// =============================================================================
+//  :common  -> loader-agnostic game logic (registries, blocks, items, worldgen,
+//              entities, networking). Written ONCE, consumed by :fabric & :neoforge.
+// =============================================================================
+architectury {
+    common(rootProject.enabled_platforms.split(","))
+}
+
+dependencies {
+    // Only for the @Environment annotations. Do NOT use other Fabric Loader classes here.
+    compileOnly "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+
+    // Architectury API: DeferredRegister, CreativeTabRegistry, events, networking...
+    api "dev.architectury:architectury:${rootProject.architectury_api_version}"
+}

@@ -1,0 +1,62 @@
+plugins {
+    id "architectury-plugin" version "3.5-SNAPSHOT"
+    // MC 26.x is unobfuscated: the "no-remap" Loom flavour compiles directly against
+    // Mojang's official names, no mappings / remapJar step required.
+    id "dev.architectury.loom-no-remap" version "1.17-SNAPSHOT" apply false
+    id "com.gradleup.shadow" version "9.4.3" apply false
+}
+
+architectury {
+    minecraft = project.minecraft_version
+}
+
+allprojects {
+    group = project.maven_group
+    version = "${project.mod_version}+mc${project.minecraft_version}"
+}
+
+subprojects {
+    apply plugin: "java-library"
+    apply plugin: "architectury-plugin"
+    apply plugin: "dev.architectury.loom-no-remap"
+
+    base {
+        archivesName = "${rootProject.archives_base_name}-${project.name}"
+    }
+
+    repositories {
+        maven { url = "https://maven.architectury.dev/" }
+        maven { url = "https://maven.neoforged.net/releases/" }
+        // Future: GeckoLib (Blockbench .geo.json animated models)
+        // maven { url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/" }
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+    }
+
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(rootProject.java_version as int)
+        withSourcesJar()
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = "UTF-8"
+        options.release = rootProject.java_version as int
+    }
+
+    // Values expanded inside fabric.mod.json / neoforge.mods.toml
+    ext.modProperties = [
+            "version"                 : project.version,
+            "mod_id"                  : rootProject.mod_id,
+            "mod_name"                : rootProject.mod_name,
+            "mod_description"         : rootProject.mod_description,
+            "mod_authors"             : rootProject.mod_authors,
+            "mod_license"             : rootProject.mod_license,
+            "minecraft_version"       : rootProject.minecraft_version,
+            "architectury_api_version": rootProject.architectury_api_version,
+            "fabric_loader_version"   : rootProject.fabric_loader_version,
+            "fabric_api_version"      : rootProject.fabric_api_version.split("\\+")[0],
+            "neoforge_version"        : rootProject.neoforge_version,
+    ]
+}

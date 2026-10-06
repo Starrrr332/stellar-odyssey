@@ -1,0 +1,7 @@
+{
+  "itemGroup.stellarodyssey.main": "Stellar Odyssey",
+  "block.stellarodyssey.alien_ore": "Alien Ore",
+  "item.stellarodyssey.oxygen_tank": "Oxygen Tank",
+  "tooltip.stellarodyssey.oxygen": "Oxygen: %s / %s units",
+  "tooltip.stellarodyssey.alien_ore": "Radiates an unknown crystalline energy."
+}

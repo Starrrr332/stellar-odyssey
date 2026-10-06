@@ -1,0 +1,7 @@
+{
+  "itemGroup.stellarodyssey.main": "Stellar Odyssey",
+  "block.stellarodyssey.alien_ore": "Mineral Alienígena",
+  "item.stellarodyssey.oxygen_tank": "Tanque de Oxígeno",
+  "tooltip.stellarodyssey.oxygen": "Oxígeno: %s / %s unidades",
+  "tooltip.stellarodyssey.alien_ore": "Irradia una energía cristalina desconocida."
+}

@@ -1,0 +1,27 @@
+pluginManagement {
+    repositories {
+        maven { url = "https://maven.fabricmc.net/" }
+        maven { url = "https://maven.architectury.dev/" }
+        maven { url = "https://maven.neoforged.net/releases/" }
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    // Auto-provisions JDK 25 for the Gradle daemon (see gradle/gradle-daemon-jvm.properties)
+    // and for any Java toolchain requested by the build.
+    id "org.gradle.toolchains.foojay-resolver-convention" version "1.0.0"
+}
+
+// Minecraft 26.x ships Java 25 bytecode; Loom must run on a JDK 25+ daemon.
+if (JavaVersion.current() < JavaVersion.VERSION_25) {
+    throw new IllegalStateException(
+            "Gradle is running on Java ${JavaVersion.current()}. Minecraft 26.3 requires Java 25+. " +
+            "Use ./gradlew (the daemon JVM is auto-provisioned) or set JAVA_HOME to a JDK 25.")
+}
+
+rootProject.name = "stellar-odyssey"
+
+include("common")
+include("fabric")
+include("neoforge")
