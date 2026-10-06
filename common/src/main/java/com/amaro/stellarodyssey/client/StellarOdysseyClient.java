@@ -1,5 +1,6 @@
 package com.amaro.stellarodyssey.client;
 
+import com.amaro.stellarodyssey.StellarOdyssey;
 import com.amaro.stellarodyssey.client.gui.OxygenHudOverlay;
 import com.amaro.stellarodyssey.client.model.StarshipModel;
 import com.amaro.stellarodyssey.client.renderer.StarshipEntityRenderer;
@@ -21,5 +22,7 @@ public final class StellarOdysseyClient {
 
         EntityModelLayerRegistry.register(StarshipModel.LAYER_LOCATION, StarshipModel::createBodyLayer);
         EntityRendererRegistry.register(ModEntities.STARSHIP, StarshipEntityRenderer::new);
+
+        StellarOdyssey.clientInit();
     }
 }

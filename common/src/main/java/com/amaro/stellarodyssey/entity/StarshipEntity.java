@@ -97,6 +97,16 @@ public class StarshipEntity extends VehicleEntity {
     }
 
     @Override
+    public boolean isPickable() {
+        return !this.isRemoved();
+    }
+
+    @Override
+    public boolean isPushable() {
+        return true;
+    }
+
+    @Override
     public LivingEntity getControllingPassenger() {
         return this.getFirstPassenger() instanceof LivingEntity living ? living : null;
     }
@@ -109,24 +119,29 @@ public class StarshipEntity extends VehicleEntity {
         if (held.is(ModItems.OXYGEN_TANK.get()) || held.is(Items.COAL) || held.is(Items.BLAZE_POWDER)) {
             float current = getFuel();
             if (current < MAX_FUEL) {
-                float restored = held.is(ModItems.OXYGEN_TANK.get()) ? 40.0F : 20.0F;
-                setFuel(current + restored);
-                if (!player.getAbilities().instabuild) {
-                    held.shrink(1);
+                if (!this.level().isClientSide()) {
+                    float restored = held.is(ModItems.OXYGEN_TANK.get()) ? 40.0F : 20.0F;
+                    setFuel(current + restored);
+                    if (!player.getAbilities().instabuild) {
+                        held.shrink(1);
+                    }
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                            SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.0F, 1.5F);
+                    player.sendOverlayMessage(
+                            Component.literal("§b✦ Hyperdrive Refueled ✦ §fFuel: " + Math.round(getFuel()) + "%")
+                    );
                 }
-                this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                        SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.0F, 1.5F);
-                player.sendOverlayMessage(
-                        Component.literal("§b✦ Hyperdrive Refueled ✦ §fFuel: " + Math.round(getFuel()) + "%")
-                );
-                return InteractionResult.SUCCESS;
+                return this.level().isClientSide() ? InteractionResult.CONSUME : InteractionResult.SUCCESS;
             }
         }
 
         // Mount the starship cockpit
-        if (!this.level().isClientSide() && this.getPassengers().isEmpty()) {
-            player.startRiding(this);
-            return InteractionResult.SUCCESS;
+        if (!player.isSecondaryUseActive() && !this.isVehicle()) {
+            if (!this.level().isClientSide()) {
+                return player.startRiding(this) ? InteractionResult.SUCCESS_SERVER : InteractionResult.CONSUME;
+            } else {
+                return InteractionResult.CONSUME;
+            }
         }
 
         return super.interact(player, hand, location);
@@ -145,14 +160,30 @@ public class StarshipEntity extends VehicleEntity {
             this.yRotO = this.getYRot();
             this.xRotO = this.getXRot();
 
-            float forward = player.zza; // Forward control
-            float strafe = player.xxa;  // Strafe control
+            boolean movingForward = false;
+            boolean movingBackward = false;
+            boolean movingUp = false;
 
-            if (forward > 0 && getFuel() > 0) {
+            if (player instanceof ServerPlayer serverPlayer) {
+                var input = serverPlayer.getLastClientInput();
+                movingForward = input.forward();
+                movingBackward = input.backward();
+                movingUp = input.jump();
+            } else {
+                movingForward = player.zza > 0;
+                movingBackward = player.zza < 0;
+                movingUp = player.isJumping();
+            }
+
+            if ((movingForward || movingUp) && getFuel() > 0) {
                 this.setThrusting(true);
                 Vec3 look = player.getLookAngle();
                 double thrust = 0.16;
-                this.setDeltaMovement(this.getDeltaMovement().add(look.scale(thrust)));
+                Vec3 accel = look.scale(thrust);
+                if (movingUp) {
+                    accel = accel.add(0, 0.10, 0);
+                }
+                this.setDeltaMovement(this.getDeltaMovement().add(accel));
 
                 // Fuel consumption
                 if (this.tickCount % 8 == 0) {

@@ -2,6 +2,7 @@ package com.amaro.stellarodyssey.client.renderer;
 
 import com.amaro.stellarodyssey.StellarOdyssey;
 import com.amaro.stellarodyssey.client.model.StarshipModel;
+import com.amaro.stellarodyssey.client.renderer.layer.EmissiveModelLayer;
 import com.amaro.stellarodyssey.client.renderer.state.StarshipRenderState;
 import com.amaro.stellarodyssey.entity.StarshipEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -18,6 +19,7 @@ import net.minecraft.resources.Identifier;
  */
 public class StarshipEntityRenderer extends EntityRenderer<StarshipEntity, StarshipRenderState> {
     private static final Identifier TEXTURE = StellarOdyssey.id("textures/entity/starship/starship.png");
+    private static final Identifier EMISSIVE_TEXTURE = StellarOdyssey.id("textures/entity/starship/starship_emissive.png");
     private final StarshipModel model;
 
     public StarshipEntityRenderer(EntityRendererProvider.Context context) {
@@ -48,7 +50,11 @@ public class StarshipEntityRenderer extends EntityRenderer<StarshipEntity, Stars
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         poseStack.translate(0.0F, -0.6F, 0.0F);
 
+        // Diffuse base model pass
         collector.submitModel(this.model, state, poseStack, TEXTURE, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+
+        // Full-bright emissive overlay pass (thruster glow, navigation lights, energy conduits)
+        EmissiveModelLayer.submitEmissive(this.model, state, poseStack, collector, EMISSIVE_TEXTURE);
 
         poseStack.popPose();
         super.submit(state, poseStack, collector, camera);
