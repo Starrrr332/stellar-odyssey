@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:blast_furnace",
+  "category": "misc",
+  "cookingtime": 100,
+  "experience": 8.5,
+  "ingredient": "stellarodyssey:raw_verdantite",
+  "result": {
+    "id": "stellarodyssey:verdantite_ingot",
+    "count": 1
+  }
+}

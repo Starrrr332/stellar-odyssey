@@ -2,6 +2,9 @@
   "replace": false,
   "values": [
     "stellarodyssey:alien_ore",
-    "stellarodyssey:alien_stone"
+    "stellarodyssey:alien_stone",
+    "stellarodyssey:astralite_ore",
+    "stellarodyssey:celidium_ore",
+    "stellarodyssey:verdantite_ore"
   ]
 }

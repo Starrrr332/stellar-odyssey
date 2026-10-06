@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "stellarodyssey:block/celidium_ore"
+  }
+}

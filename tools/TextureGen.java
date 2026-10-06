@@ -38,6 +38,7 @@ public class TextureGen {
         machineBlocks();
         assemblyTableGui();
         icon();
+        newMinerals();
         System.out.println("Textures written to " + assets);
     }
 
@@ -1409,6 +1410,73 @@ public class TextureGen {
                 img.setRGB(ix, iy, w < 1.6 ? 0xFFF7C66B : 0xFFE0914A);
             }
         }
+    }
+
+    // ------------------------------------------------------------------------------------
+    //  New alien minerals: celidium (amber), verdantite (toxic emerald), astralite (cyan)
+    //  Each has: ore block (cube_all), raw item chunk, refined ingot bar
+    // ------------------------------------------------------------------------------------
+    static void newMinerals() throws IOException {
+        mineral("celidium", 0xFFD97724, 0xFFFBBF77, 0xFF7C2D12, 42);
+        mineral("verdantite", 0xFF22C55E, 0xFF86EFAC, 0xFF14532D, 77);
+        mineral("astralite", 0xFF06B6D4, 0xFFA5F3FC, 0xFF164E63, 13);
+    }
+
+    static void mineral(String name, int main, int light, int dark, int seed) throws IOException {
+        BufferedImage ore = new BufferedImage(S, S, BufferedImage.TYPE_INT_ARGB);
+        int[] stone = {0xFF141024, 0xFF1C1730, 0xFF241D3C, 0xFF2C2448, 0xFF352B55};
+        for (int y = 0; y < S; y++) {
+            for (int x = 0; x < S; x++) {
+                double n = 0.55 * valueNoise(x / 6.0, y / 6.0, seed) + 0.3 * valueNoise(x / 3.0, y / 3.0, seed + 1)
+                        + 0.15 * valueNoise(x / 1.5, y / 1.5, seed + 2);
+                ore.setRGB(x, y, stone[clamp((int) (n * stone.length), 0, stone.length - 1)]);
+            }
+        }
+        Random rnd = new Random(seed * 97L);
+        int[][] blobs = {{8, 8}, {22, 10}, {14, 22}, {26, 24}};
+        for (int[] b : blobs) {
+            int size = 2 + rnd.nextInt(2);
+            for (int dy = -size; dy <= size; dy++) {
+                for (int dx = -size; dx <= size; dx++) {
+                    if (Math.abs(dx) + Math.abs(dy) > size) continue;
+                    int x = b[0] + dx, y = b[1] + dy;
+                    if (!inside(x, y)) continue;
+                    boolean edge = Math.abs(dx) + Math.abs(dy) == size;
+                    ore.setRGB(x, y, edge ? dark : (rnd.nextInt(4) == 0 ? light : main));
+                }
+            }
+        }
+        write(ore, "textures/block/" + name + "_ore.png");
+
+        BufferedImage raw = new BufferedImage(S, S, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < S; y++) {
+            for (int x = 0; x < S; x++) {
+                double dx = (x - 15.5) / 9.5, dy = (y - 15.5) / 9.5;
+                double wob = 0.18 * valueNoise(x / 3.0, y / 3.0, seed + 5);
+                if (dx * dx + dy * dy * 1.15 > 1 + wob) continue;
+                double n = valueNoise(x / 4.0, y / 4.0, seed + 6);
+                int c = n < 0.35 ? dark : (n < 0.62 ? main : light);
+                if (dx * dx + dy * dy * 1.15 > 0.82) c = dark;
+                raw.setRGB(x, y, c);
+            }
+        }
+        outline(raw, 0xFF1A1E26);
+        write(raw, "textures/item/raw_" + name + ".png");
+
+        BufferedImage ingot = new BufferedImage(S, S, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 12; y <= 20; y++) {
+            int inset = Math.max(0, 4 - Math.abs(y - 16));
+            for (int x = 5 + inset; x <= 26 - inset; x++) {
+                double n = valueNoise(x / 5.0, y / 2.0, seed + 7);
+                int c;
+                if (y <= 14) c = light;
+                else if (y >= 19 || x >= 24) c = dark;
+                else c = n < 0.5 ? main : light;
+                ingot.setRGB(x, y, c);
+            }
+        }
+        outline(ingot, 0xFF1A1E26);
+        write(ingot, "textures/item/" + name + "_ingot.png");
     }
 
     // ------------------------------------------------------------------------------------

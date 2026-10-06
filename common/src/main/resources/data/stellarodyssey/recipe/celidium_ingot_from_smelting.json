@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:furnace",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 4.5,
+  "ingredient": "stellarodyssey:raw_celidium",
+  "result": {
+    "id": "stellarodyssey:celidium_ingot",
+    "count": 1
+  }
+}

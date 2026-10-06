@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:furnace",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 16.5,
+  "ingredient": "stellarodyssey:raw_astralite",
+  "result": {
+    "id": "stellarodyssey:astralite_ingot",
+    "count": 1
+  }
+}
