@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "X": "stellarodyssey:celidium_ingot"
+  },
+  "pattern": [
+    "X X",
+    "XXX",
+    " X "
+  ],
+  "result": {
+    "id": "stellarodyssey:rocket_cone_t2",
+    "count": 1
+  }
+}

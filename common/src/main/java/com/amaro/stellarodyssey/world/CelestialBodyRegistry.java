@@ -58,7 +58,7 @@ public final class CelestialBodyRegistry implements ICelestialCatalog {
     );
 
     public static final ICelestialBody EXOTIC_PRIME = new PlanetaryBody(
-            ResourceKey.create(Registries.DIMENSION, StellarOdyssey.id("exotic_prime")),
+            ModDimensions.EXOTIC_PRIME,
             0.75,
             0.85f,
             false,
@@ -69,7 +69,7 @@ public final class CelestialBodyRegistry implements ICelestialCatalog {
     );
 
     public static final ICelestialBody NEXUS_MOON = new PlanetaryBody(
-            ResourceKey.create(Registries.DIMENSION, StellarOdyssey.id("nexus_moon")),
+            ModDimensions.NEXUS_MOON,
             0.16,
             0.00f,
             false,
@@ -80,7 +80,7 @@ public final class CelestialBodyRegistry implements ICelestialCatalog {
     );
 
     public static final ICelestialBody GLIESE_DEEP = new PlanetaryBody(
-            ResourceKey.create(Registries.DIMENSION, StellarOdyssey.id("gliese_deep")),
+            ModDimensions.GLIESE_DEEP,
             1.35,
             2.50f,
             false,

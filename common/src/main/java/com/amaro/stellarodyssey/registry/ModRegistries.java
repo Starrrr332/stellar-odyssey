@@ -20,6 +20,8 @@ public final class ModRegistries {
         ModCreativeTabs.register();
         ModBlocks.register();
         ModItems.register();
+        ModBlockEntityTypes.register();
+        ModMenuTypes.register();
         ModEntities.register();
         ModSoundEvents.register();
     }

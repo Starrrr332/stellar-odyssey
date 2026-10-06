@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "X": "stellarodyssey:verdantite_ingot"
+  },
+  "pattern": [
+    "X X",
+    "XXX",
+    " X "
+  ],
+  "result": {
+    "id": "stellarodyssey:rocket_cone_t3",
+    "count": 1
+  }
+}

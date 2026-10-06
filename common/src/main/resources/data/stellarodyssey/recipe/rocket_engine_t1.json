@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "X": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    " X ",
+    "XXX",
+    "X X"
+  ],
+  "result": {
+    "id": "stellarodyssey:rocket_engine_t1",
+    "count": 1
+  }
+}

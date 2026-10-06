@@ -1,6 +1,7 @@
 package com.amaro.stellarodyssey.registry;
 
 import com.amaro.stellarodyssey.StellarOdyssey;
+import com.amaro.stellarodyssey.entity.RocketEntity;
 import com.amaro.stellarodyssey.entity.StarshipEntity;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -23,6 +24,13 @@ public final class ModEntities {
                     .clientTrackingRange(12)
                     .passengerAttachments(new Vec3(0.0, 0.35, 0.0))
                     .build(ResourceKey.create(Registries.ENTITY_TYPE, StellarOdyssey.id("starship"))));
+
+    public static final RegistrySupplier<EntityType<RocketEntity>> ROCKET = ENTITIES.<EntityType<RocketEntity>>register("rocket",
+            () -> EntityType.Builder.<RocketEntity>of(RocketEntity::new, MobCategory.MISC)
+                    .sized(1.2F, 3.0F)
+                    .clientTrackingRange(12)
+                    .passengerAttachments(new Vec3(0.0, 2.2, 0.0))
+                    .build(ResourceKey.create(Registries.ENTITY_TYPE, StellarOdyssey.id("rocket"))));
 
     private ModEntities() {
     }

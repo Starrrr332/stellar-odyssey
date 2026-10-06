@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "X": "stellarodyssey:celidium_ingot",
+    "Y": "minecraft:gold_ingot"
+  },
+  "pattern": [
+    "XXX",
+    "XYX",
+    "XXX"
+  ],
+  "result": {
+    "id": "stellarodyssey:rocket_plate_t2",
+    "count": 1
+  }
+}

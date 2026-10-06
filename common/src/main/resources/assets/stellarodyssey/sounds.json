@@ -1,0 +1,34 @@
+{
+  "entity.starship.thrust": {
+    "subtitle": "subtitles.stellarodyssey.starship.thrust",
+    "sounds": [
+      {
+        "name": "stellarodyssey:entity/starship/thrust",
+        "stream": true,
+        "loop": true
+      }
+    ]
+  },
+  "hazard.decompression_alarm": {
+    "subtitle": "subtitles.stellarodyssey.decompression_alarm",
+    "sounds": [
+      "stellarodyssey:hazard/decompression_alarm"
+    ]
+  },
+  "ambient.alien_world": {
+    "subtitle": "subtitles.stellarodyssey.alien_ambience",
+    "sounds": [
+      {
+        "name": "stellarodyssey:ambient/alien_world",
+        "stream": true,
+        "loop": true
+      }
+    ]
+  },
+  "block.alien_ore.resonate": {
+    "subtitle": "subtitles.stellarodyssey.resonance_crystal",
+    "sounds": [
+      "stellarodyssey:block/alien_ore/resonate"
+    ]
+  }
+}

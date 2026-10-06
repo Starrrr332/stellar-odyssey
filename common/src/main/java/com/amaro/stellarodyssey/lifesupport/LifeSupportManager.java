@@ -3,10 +3,12 @@ package com.amaro.stellarodyssey.lifesupport;
 import com.amaro.stellarodyssey.item.OxygenTankItem;
 import com.amaro.stellarodyssey.network.OxygenSyncPayload;
 import com.amaro.stellarodyssey.registry.ModItems;
+import com.amaro.stellarodyssey.registry.ModSoundEvents;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -60,6 +62,11 @@ public final class LifeSupportManager {
                     // Hard vacuum breach: decompression damage regardless of oxygen supply
                     player.hurtServer(serverLevel, serverLevel.damageSources().drown(), 3.0F);
                     player.setAirSupply(-20);
+                    // Klaxon every 2s while the breach persists
+                    if (player.tickCount % 40 == 0) {
+                        serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(),
+                                ModSoundEvents.DECOMPRESSION_ALARM.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
+                    }
                 } else if (!firstAvailableTank.isEmpty()) {
                     // Sealed suit or emergency rebreather with active oxygen
                     OxygenTankItem.drain(firstAvailableTank, 1);

@@ -2,10 +2,15 @@ package com.amaro.stellarodyssey.client;
 
 import com.amaro.stellarodyssey.StellarOdyssey;
 import com.amaro.stellarodyssey.client.gui.OxygenHudOverlay;
+import com.amaro.stellarodyssey.client.model.RocketModel;
 import com.amaro.stellarodyssey.client.model.StarshipModel;
+import com.amaro.stellarodyssey.client.renderer.RocketEntityRenderer;
 import com.amaro.stellarodyssey.client.renderer.StarshipEntityRenderer;
+import com.amaro.stellarodyssey.client.screen.AssemblyTableScreen;
 import com.amaro.stellarodyssey.registry.ModEntities;
+import com.amaro.stellarodyssey.registry.ModMenuTypes;
 import dev.architectury.event.events.client.ClientGuiEvent;
+import dev.architectury.registry.client.gui.MenuScreenRegistry;
 import dev.architectury.registry.client.level.entity.EntityModelLayerRegistry;
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 
@@ -22,6 +27,13 @@ public final class StellarOdysseyClient {
 
         EntityModelLayerRegistry.register(StarshipModel.LAYER_LOCATION, StarshipModel::createBodyLayer);
         EntityRendererRegistry.register(ModEntities.STARSHIP, StarshipEntityRenderer::new);
+
+        EntityModelLayerRegistry.register(RocketModel.LAYER_LOCATION, RocketModel::createBodyLayer);
+        EntityRendererRegistry.register(ModEntities.ROCKET, RocketEntityRenderer::new);
+
+        MenuScreenRegistry.registerScreenFactory(ModMenuTypes.ASSEMBLY_TABLE.get(), AssemblyTableScreen::new);
+
+        AlienAmbienceHandler.init();
 
         StellarOdyssey.clientInit();
     }

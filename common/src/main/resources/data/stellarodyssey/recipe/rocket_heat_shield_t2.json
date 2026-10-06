@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "X": "stellarodyssey:celidium_ingot"
+  },
+  "pattern": [
+    "XXX",
+    "X X",
+    "XXX"
+  ],
+  "result": {
+    "id": "stellarodyssey:rocket_heat_shield_t2",
+    "count": 1
+  }
+}

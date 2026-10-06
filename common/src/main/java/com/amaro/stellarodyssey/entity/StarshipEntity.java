@@ -3,6 +3,7 @@ package com.amaro.stellarodyssey.entity;
 import com.amaro.stellarodyssey.item.OxygenTankItem;
 import com.amaro.stellarodyssey.registry.ModEntities;
 import com.amaro.stellarodyssey.registry.ModItems;
+import com.amaro.stellarodyssey.registry.ModSoundEvents;
 import com.amaro.stellarodyssey.world.ModDimensions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -46,7 +47,10 @@ public class StarshipEntity extends VehicleEntity {
             SynchedEntityData.defineId(StarshipEntity.class, EntityDataSerializers.BOOLEAN);
 
     public static final float MAX_FUEL = 100.0F;
-    public static final double ORBITAL_WARP_ALTITUDE = 350.0;
+    public static final double STAR_MAP_ALTITUDE = 256.0;
+
+    private boolean starMapShown = false;
+    private boolean thrustSoundPlaying = false;
 
     public StarshipEntity(EntityType<? extends StarshipEntity> type, Level level) {
         super(type, level);
@@ -172,7 +176,7 @@ public class StarshipEntity extends VehicleEntity {
             } else {
                 movingForward = player.zza > 0;
                 movingBackward = player.zza < 0;
-                movingUp = player.isJumping();
+                movingUp = com.amaro.stellarodyssey.client.ClientInputProbe.isJumpDown();
             }
 
             if ((movingForward || movingUp) && getFuel() > 0) {
@@ -183,7 +187,15 @@ public class StarshipEntity extends VehicleEntity {
                 if (movingUp) {
                     accel = accel.add(0, 0.10, 0);
                 }
-                this.setDeltaMovement(this.getDeltaMovement().add(accel));
+                // Clamp and damp velocity to prevent the ship from clipping through the
+                // world (unbounded acceleration caused server "moved wrongly" rubber-banding)
+                Vec3 vel = this.getDeltaMovement().add(accel);
+                double speed = vel.length();
+                double maxSpeed = 0.65;
+                if (speed > maxSpeed) {
+                    vel = vel.scale(maxSpeed / speed);
+                }
+                this.setDeltaMovement(vel.x * 0.97, vel.y * 0.97, vel.z * 0.97);
 
                 // Fuel consumption
                 if (this.tickCount % 8 == 0) {
@@ -193,17 +205,31 @@ public class StarshipEntity extends VehicleEntity {
                 // Thruster particles on both client and server
                 if (this.level().isClientSide()) {
                     spawnThrusterParticles();
+                    if (!this.thrustSoundPlaying) {
+                        this.thrustSoundPlaying = true;
+                        this.level().playLocalSound(this.getX(), this.getY(), this.getZ(),
+                                ModSoundEvents.STARSHIP_THRUST.get(), SoundSource.AMBIENT, 0.9F, 1.0F, true);
+                    }
                 }
             } else {
                 this.setThrusting(false);
+                this.thrustSoundPlaying = false;
                 // Inertial dampening and gentle cruise glide
                 Vec3 vel = this.getDeltaMovement();
                 this.setDeltaMovement(vel.x * 0.94, Math.max(-0.25, vel.y * 0.96), vel.z * 0.94);
             }
 
-            // Check for Planetary Orbital Warp Transition
-            if (!this.level().isClientSide() && this.getY() >= ORBITAL_WARP_ALTITUDE) {
-                triggerOrbitalWarp(player);
+            // Intergalactic Star Map opens automatically upon reaching open sky
+            if (this.level().isClientSide() && this.getY() >= STAR_MAP_ALTITUDE && !this.starMapShown
+                    && rider instanceof Player) {
+                this.starMapShown = true;
+                com.amaro.stellarodyssey.StellarOdyssey.LOGGER.info(
+                        "Orbital altitude {} reached — opening Star Map screen", Math.round(this.getY()));
+                com.amaro.stellarodyssey.satellites.starmap.StarMapSatellite.openScreen(
+                        com.amaro.stellarodyssey.world.CelestialBodyRegistry.getInstance());
+            }
+            if (this.getY() < 200.0) {
+                this.starMapShown = false;
             }
         } else {
             this.setThrusting(false);
@@ -227,58 +253,4 @@ public class StarshipEntity extends VehicleEntity {
                 (random.nextDouble() - 0.5) * 0.1, (random.nextDouble() - 0.5) * 0.1, (random.nextDouble() - 0.5) * 0.1);
     }
 
-    private void triggerOrbitalWarp(Player player) {
-        if (!(player instanceof ServerPlayer serverPlayer) || !(this.level() instanceof ServerLevel currentLevel)) {
-            return;
-        }
-
-        ResourceKey<Level> targetKey = currentLevel.dimension().equals(ModDimensions.PROXIMA_B)
-                ? Level.OVERWORLD
-                : ModDimensions.PROXIMA_B;
-
-        ServerLevel targetLevel = currentLevel.getServer().getLevel(targetKey);
-        if (targetLevel == null) {
-            return;
-        }
-
-        double targetX = this.getX();
-        double targetZ = this.getZ();
-        double targetY = 320.0;
-
-        TeleportTransition shipTransition = new TeleportTransition(
-                targetLevel,
-                new Vec3(targetX, targetY, targetZ),
-                new Vec3(0, -0.4, 0),
-                this.getYRot(),
-                this.getXRot(),
-                TeleportTransition.DO_NOTHING
-        );
-
-        serverPlayer.stopRiding();
-
-        TeleportTransition playerTransition = new TeleportTransition(
-                targetLevel,
-                new Vec3(targetX, targetY + 0.35, targetZ),
-                new Vec3(0, -0.4, 0),
-                this.getYRot(),
-                this.getXRot(),
-                TeleportTransition.DO_NOTHING
-        );
-
-        serverPlayer.teleport(playerTransition);
-        Entity newShip = this.teleport(shipTransition);
-
-        if (newShip != null) {
-            serverPlayer.startRiding(newShip);
-        }
-
-        // No Man's Sky hyperspace warp HUD titles
-        String destinationName = targetKey.equals(ModDimensions.PROXIMA_B)
-                ? "PROXIMA CENTAURI B"
-                : "EARTH ATMOSPHERE";
-
-        serverPlayer.connection.send(new ClientboundSetTitlesAnimationPacket(10, 60, 15));
-        serverPlayer.connection.send(new ClientboundSetTitleTextPacket(Component.literal("§b✦ HYPERSPACE DESCENT ✦")));
-        serverPlayer.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal("§7Entering: §f" + destinationName)));
-    }
 }

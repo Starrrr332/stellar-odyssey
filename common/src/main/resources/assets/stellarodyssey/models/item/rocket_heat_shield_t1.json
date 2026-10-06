@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stellarodyssey:item/rocket_heat_shield_t1"
+  }
+}

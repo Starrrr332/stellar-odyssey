@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "X": "stellarodyssey:verdantite_ingot",
+    "Y": "stellarodyssey:astralite_ingot"
+  },
+  "pattern": [
+    " X ",
+    "XYX",
+    " X "
+  ],
+  "result": {
+    "id": "stellarodyssey:rocket_guidance_t3",
+    "count": 1
+  }
+}

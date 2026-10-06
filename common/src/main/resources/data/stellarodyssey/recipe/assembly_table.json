@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "C": "minecraft:crafting_table"
+  },
+  "pattern": [
+    "III",
+    "C C",
+    "III"
+  ],
+  "result": {
+    "id": "stellarodyssey:assembly_table",
+    "count": 1
+  }
+}

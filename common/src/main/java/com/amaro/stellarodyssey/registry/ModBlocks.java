@@ -1,7 +1,12 @@
 package com.amaro.stellarodyssey.registry;
 
 import com.amaro.stellarodyssey.StellarOdyssey;
+import com.amaro.stellarodyssey.block.AlienMineralBlock;
 import com.amaro.stellarodyssey.block.AlienOreBlock;
+import com.amaro.stellarodyssey.block.AssemblyTableBlock;
+import com.amaro.stellarodyssey.block.LaunchPadBaseBlock;
+import com.amaro.stellarodyssey.block.LaunchPadBlock;
+import com.amaro.stellarodyssey.registry.tiers.AlienMineralTier;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
@@ -47,6 +52,51 @@ public final class ModBlocks {
                     .strength(0.8F, 0.8F)
                     .sound(SoundType.SCULK)
                     .lightLevel(state -> 4));
+
+    // --- Tiered alien mineral ores -----------------------------------------------------------
+    public static final RegistrySupplier<AlienMineralBlock> CELIDIUM_ORE = register("celidium_ore",
+            props -> new AlienMineralBlock(AlienMineralTier.CELIDIUM, props),
+            AlienMineralBlock.propertiesForTier(AlienMineralTier.CELIDIUM));
+
+    public static final RegistrySupplier<AlienMineralBlock> VERDANTITE_ORE = register("verdantite_ore",
+            props -> new AlienMineralBlock(AlienMineralTier.VERDANTITE, props),
+            AlienMineralBlock.propertiesForTier(AlienMineralTier.VERDANTITE));
+
+    public static final RegistrySupplier<AlienMineralBlock> ASTRALITE_ORE = register("astralite_ore",
+            props -> new AlienMineralBlock(AlienMineralTier.ASTRALITE, props),
+            AlienMineralBlock.propertiesForTier(AlienMineralTier.ASTRALITE));
+
+    // --- Crafting stations -------------------------------------------------------------------
+    /** Rocket Assembly Table: combines tiered components into an assembled rocket. */
+    public static final RegistrySupplier<AssemblyTableBlock> ASSEMBLY_TABLE = register("assembly_table",
+            AssemblyTableBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_GRAY)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .strength(3.0F, 6.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.METAL));
+
+    // --- Launch infrastructure ---------------------------------------------------------------
+    /** Central block of the 3x3 launch pad. */
+    public static final RegistrySupplier<LaunchPadBlock> LAUNCH_PAD = register("launch_pad",
+            LaunchPadBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_LIGHT_GRAY)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .strength(4.0F, 8.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.METAL));
+
+    /** Filler block of the 3x3 launch pad. */
+    public static final RegistrySupplier<LaunchPadBaseBlock> LAUNCH_PAD_BASE = register("launch_pad_base",
+            LaunchPadBaseBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_LIGHT_GRAY)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .strength(4.0F, 8.0F)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.METAL));
 
     private ModBlocks() {
     }
