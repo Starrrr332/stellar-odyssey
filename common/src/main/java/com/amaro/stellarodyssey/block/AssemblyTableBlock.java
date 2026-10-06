@@ -1,19 +1,16 @@
 package com.amaro.stellarodyssey.block;
 
 import com.amaro.stellarodyssey.block.entity.AssemblyTableBlockEntity;
-import com.amaro.stellarodyssey.block.entity.AssemblyTableMenu;
+import dev.architectury.registry.menu.MenuRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -36,11 +33,9 @@ public class AssemblyTableBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide()) {
-            MenuProvider provider = this.getMenuProvider(state, level, pos);
-            if (provider != null) {
-                player.openMenu(provider);
-            }
+        if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer
+                && level.getBlockEntity(pos) instanceof AssemblyTableBlockEntity table) {
+            MenuRegistry.openExtendedMenu(serverPlayer, table);
         }
         return InteractionResult.SUCCESS;
     }
@@ -49,9 +44,7 @@ public class AssemblyTableBlock extends Block implements EntityBlock {
     protected @Nullable MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof AssemblyTableBlockEntity table) {
-            return new SimpleMenuProvider((id, inv, p) ->
-                    new AssemblyTableMenu(id, inv, table, ContainerLevelAccess.create(level, pos)),
-                    Component.translatable("container.stellarodyssey.assembly_table"));
+            return table;
         }
         return null;
     }

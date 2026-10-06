@@ -1,12 +1,16 @@
 package com.amaro.stellarodyssey.registry;
 
 import com.amaro.stellarodyssey.StellarOdyssey;
+import com.amaro.stellarodyssey.block.entity.AssemblyTableBlockEntity;
 import com.amaro.stellarodyssey.block.entity.AssemblyTableMenu;
 import dev.architectury.registry.menu.MenuRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.Level;
 
 /** Menu type registry for Stellar Odyssey. */
 public final class ModMenuTypes {
@@ -14,8 +18,14 @@ public final class ModMenuTypes {
             DeferredRegister.create(StellarOdyssey.MOD_ID, Registries.MENU);
 
     public static final RegistrySupplier<MenuType<AssemblyTableMenu>> ASSEMBLY_TABLE =
-            MENU_TYPES.register("assembly_table",
-                    () -> MenuRegistry.ofExtended((id, inv, buf) -> new AssemblyTableMenu(id, inv)));
+            MENU_TYPES.register("assembly_table", () -> MenuRegistry.ofExtended((id, inv, buf) -> {
+                BlockPos pos = buf.readBlockPos();
+                Level level = net.minecraft.client.Minecraft.getInstance().level;
+                if (level != null && level.getBlockEntity(pos) instanceof AssemblyTableBlockEntity table) {
+                    return new AssemblyTableMenu(id, inv, table, ContainerLevelAccess.create(level, pos));
+                }
+                return new AssemblyTableMenu(id, inv);
+            }));
 
     private ModMenuTypes() {
     }

@@ -5,7 +5,6 @@ import com.amaro.stellarodyssey.registry.ModItems;
 import com.amaro.stellarodyssey.registry.ModMenuTypes;
 import com.amaro.stellarodyssey.registry.tiers.RocketTier;
 import com.amaro.stellarodyssey.rocket.AssemblyLogic;
-import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -66,6 +65,7 @@ public class AssemblyTableMenu extends AbstractContainerMenu {
             public void onTake(Player player, ItemStack stack) {
                 super.onTake(player, stack);
                 consumeComponents();
+                updateResult();
             }
         });
 
@@ -137,17 +137,16 @@ public class AssemblyTableMenu extends AbstractContainerMenu {
                 && player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0, true);
     }
 
+    /**
+     * On close, leftover components go back to the player and the table is emptied
+     * (vanilla furnace pattern). Returning them without clearing the container would
+     * duplicate items the next time the table is opened.
+     */
     @Override
     public void removed(Player player) {
         super.removed(player);
-        if (!this.access.evaluate((level, pos) -> level.isClientSide(), true)) {
-            // Return any leftover components to the player
-            for (int i = 0; i < COMPONENT_SLOTS; i++) {
-                ItemStack stack = this.components.getItem(i);
-                if (!stack.isEmpty()) {
-                    player.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
-                }
-            }
+        if (!player.level().isClientSide()) {
+            this.clearContainer(player, this.components);
         }
     }
 }

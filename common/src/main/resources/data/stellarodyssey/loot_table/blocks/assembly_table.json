@@ -6,10 +6,20 @@
       "entries": [
         {
           "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_components",
+              "include": [
+                "minecraft:custom_name"
+              ],
+              "source": "block_entity"
+            }
+          ],
           "name": "stellarodyssey:assembly_table"
         }
       ],
       "rolls": 1.0
     }
-  ]
+  ],
+  "random_sequence": "stellarodyssey:blocks/assembly_table"
 }

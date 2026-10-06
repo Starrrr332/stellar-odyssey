@@ -3,8 +3,10 @@ package com.amaro.stellarodyssey.block.entity;
 import com.amaro.stellarodyssey.registry.ModBlockEntityTypes;
 import com.amaro.stellarodyssey.registry.tiers.RocketTier;
 import com.amaro.stellarodyssey.rocket.AssemblyLogic;
+import dev.architectury.registry.menu.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,7 +26,7 @@ import java.util.Optional;
  * assembled tier so the menu can show a "Launch" result slot.
  * </p>
  */
-public class AssemblyTableBlockEntity extends BaseContainerBlockEntity {
+public class AssemblyTableBlockEntity extends BaseContainerBlockEntity implements ExtendedMenuProvider {
     private static final int SLOT_COUNT = 8;
     private NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
 
@@ -55,6 +57,12 @@ public class AssemblyTableBlockEntity extends BaseContainerBlockEntity {
     @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
         return new AssemblyTableMenu(containerId, inventory, this);
+    }
+
+    /** Sends this table's position to the client so the menu can bind to the same container. */
+    @Override
+    public void saveExtraData(FriendlyByteBuf buf) {
+        buf.writeBlockPos(this.worldPosition);
     }
 
     /** @return the tier assembled by the current contents, if any. */
