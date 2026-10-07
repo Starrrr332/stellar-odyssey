@@ -1,17 +1,30 @@
 {
-  "has_precipitation": false,
-  "temperature": 0.1,
+  "attributes": {
+    "minecraft:visual/sky_color": "#000000"
+  },
+  "carvers": [],
   "downfall": 0.0,
   "effects": {
-    "sky_color": 0,
-    "fog_color": 0,
-    "water_color": 4159204,
-    "water_fog_color": 329011
+    "fog_color": "#000000",
+    "sky_color": "#000000",
+    "water_color": "#202020",
+    "water_fog_color": "#101010"
   },
-  "spawners": {},
-  "spawn_costs": {},
-  "carvers": {},
   "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "stellarodyssey:celidium_ore_vein_placed"
+    ],
+    [],
+    [],
+    [],
     []
-  ]
+  ],
+  "has_precipitation": false,
+  "temperature": 0.0
 }
