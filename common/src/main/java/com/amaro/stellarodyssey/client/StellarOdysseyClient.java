@@ -40,6 +40,11 @@ public final class StellarOdysseyClient {
         MenuScreenRegistry.registerScreenFactory(ModMenuTypes.ASSEMBLY_TABLE.get(), AssemblyTableScreen::new);
 
         AlienAmbienceHandler.init();
+        SpaceSoundAttenuationHandler.init();
+        
+        dev.architectury.event.events.client.ClientTickEvent.CLIENT_POST.register(
+            com.amaro.stellarodyssey.client.ClientRocketFlightHandler::tickClient
+        );
 
         StellarOdyssey.clientInit();
     }

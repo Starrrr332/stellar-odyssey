@@ -127,13 +127,25 @@ public final class StarMapSatellite implements SatelliteModule {
      * @param catalog The catalog to query, or {@code null} to use the active catalog.
      */
     public static void openScreen(ICelestialCatalog catalog) {
+        openScreen(catalog, 0, -1);
+    }
+
+    /**
+     * Opens the Star Map navigation screen with active rocket context on the physical client.
+     * Guarded to be safely no-op on dedicated servers.
+     *
+     * @param catalog The catalog to query, or {@code null} to use the active catalog.
+     * @param rocketTier The tier level of the mounting rocket (1-3).
+     * @param rocketEntityId The entity ID of the rocket.
+     */
+    public static void openScreen(ICelestialCatalog catalog, int rocketTier, int rocketEntityId) {
         if (Platform.getEnvironment() != Env.CLIENT) {
             ModConstants.LOGGER.warn("Attempted to open StarMapScreen on non-client environment.");
             return;
         }
 
         ICelestialCatalog cat = catalog != null ? catalog : activeCatalog;
-        EnvExecutor.runInEnv(Env.CLIENT, () -> () -> StarMapClientHandler.openScreen(cat));
+        EnvExecutor.runInEnv(Env.CLIENT, () -> () -> StarMapClientHandler.openScreen(cat, rocketTier, rocketEntityId));
     }
 
     /**
@@ -145,7 +157,11 @@ public final class StarMapSatellite implements SatelliteModule {
         }
 
         static void openScreen(ICelestialCatalog catalog) {
-            Minecraft.getInstance().setScreenAndShow(new StarMapScreen(catalog));
+            openScreen(catalog, 0, -1);
+        }
+
+        static void openScreen(ICelestialCatalog catalog, int rocketTier, int rocketEntityId) {
+            Minecraft.getInstance().setScreenAndShow(new StarMapScreen(catalog, rocketTier, rocketEntityId));
         }
     }
 }

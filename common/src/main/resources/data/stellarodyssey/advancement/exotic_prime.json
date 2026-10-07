@@ -1,0 +1,26 @@
+{
+  "parent": "stellarodyssey:odyssey",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:alien_turf"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.exotic_prime.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.exotic_prime.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "reached_exotic_prime": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "stellarodyssey:exotic_prime"
+      }
+    }
+  }
+}

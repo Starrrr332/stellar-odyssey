@@ -1,0 +1,30 @@
+{
+  "parent": "stellarodyssey:proxima_b",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:astralite_ingot"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.astralite.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.astralite.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_astralite_ingot": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "stellarodyssey:astralite_ingot"
+          }
+        ]
+      }
+    }
+  }
+}

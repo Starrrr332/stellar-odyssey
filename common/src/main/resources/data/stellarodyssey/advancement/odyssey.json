@@ -1,0 +1,30 @@
+{
+  "parent": "stellarodyssey:astralite",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:rocket_t3"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.odyssey.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.odyssey.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_rocket_t3": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "stellarodyssey:rocket_t3"
+          }
+        ]
+      }
+    }
+  }
+}

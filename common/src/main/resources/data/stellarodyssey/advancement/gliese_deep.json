@@ -1,0 +1,26 @@
+{
+  "parent": "stellarodyssey:odyssey",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:alien_stone"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.gliese_deep.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.gliese_deep.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "reached_gliese_deep": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "stellarodyssey:gliese_deep"
+      }
+    }
+  }
+}

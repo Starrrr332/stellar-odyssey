@@ -24,6 +24,9 @@ public final class StellarOdyssey {
 
     public static void init() {
         ModLifecycleManager.init();
+        com.amaro.stellarodyssey.satellites.worldgen.WorldGenSatellite.init();
+        com.amaro.stellarodyssey.satellites.ecology.EcologySatellite.init();
+        com.amaro.stellarodyssey.satellites.starmap.StarMapSatellite.init();
         ModRegistries.registerAll();
         ModLifecycleManager.fireStage(ModLifecycleStage.REGISTRY);
 

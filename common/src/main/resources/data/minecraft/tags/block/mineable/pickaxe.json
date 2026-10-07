@@ -3,8 +3,13 @@
   "values": [
     "stellarodyssey:alien_ore",
     "stellarodyssey:alien_stone",
+    "stellarodyssey:assembly_table",
     "stellarodyssey:astralite_ore",
     "stellarodyssey:celidium_ore",
+    "stellarodyssey:launch_pad",
+    "stellarodyssey:launch_pad_base",
+    "stellarodyssey:oxygen_refiller",
+    "stellarodyssey:oxygen_sealer",
     "stellarodyssey:verdantite_ore"
   ]
 }

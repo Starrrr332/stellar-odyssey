@@ -37,11 +37,71 @@ public final class ModSoundEvents {
     public static final RegistrySupplier<SoundEvent> ENGINE_IGNITION =
             register("entity.rocket.engine_ignition");
 
+    /** Tier 1 rocket engine thrust roar (Pioneer solid booster growl) during IGNITION / ASCENT. */
+    public static final RegistrySupplier<SoundEvent> ROCKET_THRUST_T1 =
+            register("entity.rocket.thrust_t1");
+
+    /** Backward-compatible alias for Tier 1 rocket engine roar. */
+    public static final RegistrySupplier<SoundEvent> ENGINE_ROAR_T1 = ROCKET_THRUST_T1;
+
+    /** Tier 2 rocket engine thrust roar (Voyager clustered liquid ion burn). */
+    public static final RegistrySupplier<SoundEvent> ROCKET_THRUST_T2 =
+            register("entity.rocket.thrust_t2");
+
+    /** Backward-compatible alias for Tier 2 rocket engine roar. */
+    public static final RegistrySupplier<SoundEvent> ENGINE_ROAR_T2 = ROCKET_THRUST_T2;
+
+    /** Tier 3 rocket engine thrust roar (Odyssey deep antimatter/warp thruster). */
+    public static final RegistrySupplier<SoundEvent> ROCKET_THRUST_T3 =
+            register("entity.rocket.thrust_t3");
+
+    /** Backward-compatible alias for Tier 3 rocket engine roar. */
+    public static final RegistrySupplier<SoundEvent> ENGINE_ROAR_T3 = ROCKET_THRUST_T3;
+
+    /** Atmospheric entry thunder while descending into a destination atmosphere (ARRIVAL). */
+    public static final RegistrySupplier<SoundEvent> ATMOSPHERIC_REENTRY =
+            register("entity.rocket.atmospheric_reentry");
+
+    /** Pressurization hiss and pneumatic seal confirmation of the Oxygen Sealer habitat. */
+    public static final RegistrySupplier<SoundEvent> OXYGEN_SEALER_PRESSURIZE =
+            register("block.oxygen_sealer.pressurize");
+
+    /** Pressurization cycle sound for airlocks and sealed habitats. */
+    public static final RegistrySupplier<SoundEvent> AIRLOCK_CYCLE =
+            register("block.airlock.cycle");
+
+    /** Backward-compatible alias for habitat pressurization. */
+    public static final RegistrySupplier<SoundEvent> HABITAT_PRESSURIZE = OXYGEN_SEALER_PRESSURIZE;
+
     /** Whoosh of the hyperdrive as the rocket bends space (WARP). */
     public static final RegistrySupplier<SoundEvent> WARP_WHOOSH =
             register("entity.rocket.warp_whoosh");
 
     private ModSoundEvents() {
+    }
+
+    /**
+     * Resolves the appropriate engine thrust supplier for a given rocket tier (1 to 3).
+     *
+     * @param tier Rocket tier level (1, 2, or 3).
+     * @return The corresponding RegistrySupplier for SoundEvent.
+     */
+    public static RegistrySupplier<SoundEvent> getRocketThrustSupplier(int tier) {
+        return switch (tier) {
+            case 3 -> ROCKET_THRUST_T3;
+            case 2 -> ROCKET_THRUST_T2;
+            default -> ROCKET_THRUST_T1;
+        };
+    }
+
+    /**
+     * Resolves the appropriate engine thrust SoundEvent for a given rocket tier (1 to 3).
+     *
+     * @param tier Rocket tier level (1, 2, or 3).
+     * @return The corresponding SoundEvent.
+     */
+    public static SoundEvent getRocketThrustSound(int tier) {
+        return getRocketThrustSupplier(tier).get();
     }
 
     private static RegistrySupplier<SoundEvent> register(String name) {

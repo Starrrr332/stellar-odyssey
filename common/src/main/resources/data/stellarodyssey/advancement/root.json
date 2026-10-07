@@ -1,0 +1,30 @@
+{
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:alien_stone"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.root.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.root.description"
+    },
+    "frame": "task",
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_alien_stone": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "stellarodyssey:alien_stone"
+          }
+        ]
+      }
+    }
+  }
+}

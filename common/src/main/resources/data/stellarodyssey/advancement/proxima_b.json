@@ -1,0 +1,26 @@
+{
+  "parent": "stellarodyssey:voyager",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:verdantite_ore"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.proxima_b.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.proxima_b.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "reached_proxima_b": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "stellarodyssey:proxima_b"
+      }
+    }
+  }
+}

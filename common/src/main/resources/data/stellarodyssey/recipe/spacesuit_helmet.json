@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "G": "minecraft:glass",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "III",
+    "IGI"
+  ],
+  "result": {
+    "id": "stellarodyssey:spacesuit_helmet",
+    "count": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "parent": "stellarodyssey:root",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:rocket_t1"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.rocket_pioneer.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.rocket_pioneer.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_rocket_t1": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "stellarodyssey:rocket_t1"
+          }
+        ]
+      }
+    }
+  }
+}

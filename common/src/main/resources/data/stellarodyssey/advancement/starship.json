@@ -1,0 +1,30 @@
+{
+  "parent": "stellarodyssey:odyssey",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:starship"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.starship.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.starship.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_starship": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "stellarodyssey:starship"
+          }
+        ]
+      }
+    }
+  }
+}

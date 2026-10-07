@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "stellarodyssey:astralite_ingot",
+    "C": "stellarodyssey:celidium_ingot",
+    "I": "minecraft:iron_ingot",
+    "V": "stellarodyssey:verdantite_ingot"
+  },
+  "pattern": [
+    "ACA",
+    "VVV",
+    " I "
+  ],
+  "result": {
+    "id": "stellarodyssey:starship",
+    "count": 1
+  }
+}

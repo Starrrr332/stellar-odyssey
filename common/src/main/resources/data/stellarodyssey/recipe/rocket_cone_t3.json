@@ -2,11 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "X": "stellarodyssey:verdantite_ingot"
+    "X": "stellarodyssey:verdantite_ingot",
+    "Y": "stellarodyssey:astralite_ingot"
   },
   "pattern": [
     "X X",
-    "XXX",
+    "XYX",
     " X "
   ],
   "result": {

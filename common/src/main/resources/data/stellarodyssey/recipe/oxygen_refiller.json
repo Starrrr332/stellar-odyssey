@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:glass",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    " I ",
+    "IGI",
+    "IRI"
+  ],
+  "result": {
+    "id": "stellarodyssey:oxygen_refiller",
+    "count": 1
+  }
+}

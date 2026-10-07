@@ -48,6 +48,12 @@ public class OxygenRefillerBlock extends Block {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hit) {
+        // Refilling mutates ItemStacks, so it is server-authoritative only. The client merely
+        // predicts the interaction; otherwise the two sides briefly disagree about tank charge.
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+
         Inventory inv = player.getInventory();
         int refilledCount = 0;
 
@@ -60,16 +66,12 @@ public class OxygenRefillerBlock extends Block {
         }
 
         if (refilledCount > 0) {
-            if (!level.isClientSide()) {
-                level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.2F);
-                player.sendSystemMessage(Component.translatable("message.stellarodyssey.oxygen_all_refilled"));
-            }
+            level.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 1.2F);
+            player.sendSystemMessage(Component.translatable("message.stellarodyssey.oxygen_all_refilled"));
             return InteractionResult.SUCCESS;
-        } else {
-            if (!level.isClientSide()) {
-                player.sendSystemMessage(Component.translatable("message.stellarodyssey.oxygen_no_tanks"));
-            }
-            return InteractionResult.CONSUME;
         }
+
+        player.sendSystemMessage(Component.translatable("message.stellarodyssey.oxygen_no_tanks"));
+        return InteractionResult.CONSUME;
     }
 }

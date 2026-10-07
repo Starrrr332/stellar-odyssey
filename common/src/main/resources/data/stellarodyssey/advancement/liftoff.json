@@ -1,0 +1,26 @@
+{
+  "parent": "stellarodyssey:rocket_pioneer",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:launch_pad"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.liftoff.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.liftoff.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "reached_nexus_moon": {
+      "trigger": "minecraft:changed_dimension",
+      "conditions": {
+        "to": "stellarodyssey:nexus_moon"
+      }
+    }
+  }
+}

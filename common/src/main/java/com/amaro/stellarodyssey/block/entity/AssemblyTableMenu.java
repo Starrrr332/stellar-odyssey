@@ -47,11 +47,17 @@ public class AssemblyTableMenu extends AbstractContainerMenu {
         this.components = container;
         this.result = new SimpleContainer(1);
 
-        // Component slots: 2 rows x 4 columns
+        // Component slots: 2 rows x 4 columns. Capped at one item per slot because the
+        // assembly contract is exactly one of each required component.
         for (int row = 0; row < 2; row++) {
             for (int col = 0; col < 4; col++) {
                 int index = row * 4 + col;
-                this.addSlot(new Slot(container, index, 26 + col * 18, 18 + row * 18));
+                this.addSlot(new Slot(container, index, 26 + col * 18, 18 + row * 18) {
+                    @Override
+                    public int getMaxStackSize() {
+                        return 1;
+                    }
+                });
             }
         }
         // Result slot
@@ -112,6 +118,8 @@ public class AssemblyTableMenu extends AbstractContainerMenu {
         for (int i = 0; i < COMPONENT_SLOTS; i++) {
             ItemStack stack = this.components.getItem(i);
             if (!stack.isEmpty()) {
+                // AssemblyLogic only validates when each required slot holds exactly one unit,
+                // so removing one item per slot can never leave a still-valid duplicate set.
                 stack.shrink(1);
                 this.components.setItem(i, stack);
             }

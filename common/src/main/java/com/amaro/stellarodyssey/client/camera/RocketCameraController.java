@@ -1,26 +1,21 @@
 package com.amaro.stellarodyssey.client.camera;
 
+import com.amaro.stellarodyssey.client.ClientRocketFlightHandler;
 import com.amaro.stellarodyssey.entity.RocketEntity;
 import com.amaro.stellarodyssey.rocket.RocketFlightPhase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 
 /**
- * Computes the deterministic camera amplification applied while the local player
+ * Computes deterministic camera amplification applied while the local player
  * rides a rocket through an active {@link RocketFlightPhase} sequence.
- *
- * <p>The maths live in {@link #computeShake(RocketFlightPhase, int, int, float)}
- * and are deliberately free of any Minecraft dependency so they can be unit-tested
- * headlessly. {@link #currentShake(float)} is the thin client accessor used by the
- * loader-specific hooks:
+ * <p>
+ * The vibration is dynamically coupled with:
  * <ul>
- *     <li><b>Fabric</b>: a mixin on {@code net.minecraft.client.Camera} (no Fabric API
- *         camera event exists on 26.3).</li>
- *     <li><b>NeoForge</b>: {@code ViewportEvent.ComputeCameraAngles} + {@code ComputeFov}.</li>
+ *     <li>FSM flight phase thrust profile</li>
+ *     <li>Felt G-acceleration ($G = 1 + a/g_0$)</li>
+ *     <li>Aerodynamic dynamic pressure ($Max-Q = \frac{1}{2}\rho v^2$)</li>
  * </ul>
- *
- * <p>Reference amplitudes mirror the HUD shake already drawn by
- * {@code LaunchCinematicOverlay}, but applied to the actual world view.
  */
 public final class RocketCameraController {
 
@@ -34,11 +29,9 @@ public final class RocketCameraController {
 
     /**
      * Resolves the ridden rocket of the local player and returns the shake for the
-     * current frame. Returns {@link RocketCameraShake#NONE} when the player is not
-     * riding a rocket whose FSM is in flight.
+     * current frame, coupling camera vibration to real-time G-force and Max-Q dynamic pressure.
      *
-     * @param partialTick render-frame partial tick (0 when unknown), used only for
-     *                    sub-tick smoothness of the trigger/shake waves
+     * @param partialTick render-frame partial tick (0 when unknown)
      */
     public static RocketCameraShake currentShake(float partialTick) {
         Minecraft mc = Minecraft.getInstance();
@@ -54,21 +47,40 @@ public final class RocketCameraController {
             return RocketCameraShake.NONE;
         }
         int durationTicks = rocket.getSchedule().durationOf(phase);
-        return computeShake(phase, rocket.getPhaseTicks(), durationTicks, partialTick);
+        ClientRocketFlightHandler.TelemetrySnapshot telemetry = ClientRocketFlightHandler.currentTelemetry();
+        return computeShake(phase, rocket.getPhaseTicks(), durationTicks, partialTick,
+                telemetry.gForce(), telemetry.dynamicPressure());
     }
 
     /**
-     * Deterministic shake generator: engine vibration during IGNITION, violent rumble
-     * through ASCENT / ATMOSPHERE_EXIT, a warp shimmer during WARP_CHARGE / WARP and a
-     * settling rumble on ARRIVAL / LANDING that decays toward touchdown.
-     *
-     * @param phase         the server-authoritative flight phase (never {@code null})
-     * @param phaseTicks    elapsed ticks inside the phase (&ge; 0)
-     * @param durationTicks scheduled phase duration in ticks (0 means unproven/terminal)
-     * @param partialTick   render-frame partial tick (&ge; 0), adds sub-tick smoothness
+     * Deterministic shake generator with baseline nominal parameters.
+     * Backwards-compatible pure function for headless unit testing.
      */
     public static RocketCameraShake computeShake(RocketFlightPhase phase, int phaseTicks,
                                                  int durationTicks, float partialTick) {
+        return computeShake(phase, phaseTicks, durationTicks, partialTick, 1.0, 0.0);
+    }
+
+    /**
+     * Deterministic shake generator dynamically coupled with real-time G-force and Max-Q dynamic pressure:
+     * <ul>
+     *     <li>Engine vibration during IGNITION</li>
+     *     <li>Violent rumble during ASCENT peaking at Max-Q dynamic pressure</li>
+     *     <li>Exosphere transition shudder during ATMOSPHERE_EXIT</li>
+     *     <li>Relativistic warp shimmer during WARP_CHARGE / WARP</li>
+     *     <li>Touchdown settling rumble during ARRIVAL / LANDING</li>
+     * </ul>
+     *
+     * @param phase           the server-authoritative flight phase (never {@code null})
+     * @param phaseTicks      elapsed ticks inside the phase (&ge; 0)
+     * @param durationTicks   scheduled phase duration in ticks (0 means unproven/terminal)
+     * @param partialTick     render-frame partial tick (&ge; 0), adds sub-tick smoothness
+     * @param gForce          felt acceleration in Gs
+     * @param dynamicPressure normalized dynamic pressure ($q \in [0.0, 1.0]$)
+     */
+    public static RocketCameraShake computeShake(RocketFlightPhase phase, int phaseTicks,
+                                                 int durationTicks, float partialTick,
+                                                 double gForce, double dynamicPressure) {
         if (phase == null || !phase.isInFlight()) {
             return RocketCameraShake.NONE;
         }
@@ -94,6 +106,13 @@ public final class RocketCameraController {
             amplitude *= (1.0F - progress);
         }
 
+        // Dynamic aerodynamic Max-Q pressure buffet & G-force scaling during atmospheric ascent
+        if (phase == RocketFlightPhase.ASCENT || phase == RocketFlightPhase.ATMOSPHERE_EXIT) {
+            float qScale = (float) Math.clamp(dynamicPressure, 0.0, 1.0);
+            float gScale = (float) Math.clamp(Math.max(0.0, gForce - 1.0) / 4.0, 0.0, 1.0);
+            amplitude *= (1.0F + 0.35F * qScale + 0.15F * gScale);
+        }
+
         if (amplitude <= 0.0F && fovScale == 1.0F) {
             return RocketCameraShake.NONE;
         }
@@ -101,6 +120,14 @@ public final class RocketCameraController {
         float yaw = (float) Math.sin(t * 1.9F) * amplitude;
         float pitch = (float) Math.cos(t * 2.3F) * amplitude;
         float roll = (float) Math.sin(t * 1.3F) * amplitude * 0.5F;
+
+        // High-frequency aerodynamic buffet vibration when dynamic pressure crosses Max-Q threshold
+        if (dynamicPressure > 0.2 && (phase == RocketFlightPhase.ASCENT || phase == RocketFlightPhase.ATMOSPHERE_EXIT)) {
+            float qBuffet = (float) (dynamicPressure * 0.45);
+            yaw += (float) Math.sin(t * 4.7F) * qBuffet;
+            pitch += (float) Math.cos(t * 5.3F) * qBuffet;
+        }
+
         return new RocketCameraShake(yaw, pitch, roll, fovScale);
     }
 

@@ -3,8 +3,11 @@ package com.amaro.stellarodyssey.block.entity;
 import com.amaro.stellarodyssey.block.OxygenSealerBlock;
 import com.amaro.stellarodyssey.lifesupport.AtmosphereHelper;
 import com.amaro.stellarodyssey.registry.ModBlockEntityTypes;
+import com.amaro.stellarodyssey.registry.ModSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DoorBlock;
@@ -119,6 +122,7 @@ public class OxygenSealerBlockEntity extends BlockEntity {
 
         SealedRoomResult result = calculateSealedRoom(pos, MAX_VOLUME, MAX_HORIZONTAL_RADIUS, MAX_VERTICAL_RADIUS, barrierPredicate);
 
+        boolean wasSealed = this.sealed;
         boolean stateChanged = (this.sealed != result.sealed()) || (this.volume != result.volume());
         this.sealed = result.sealed();
         this.volume = result.volume();
@@ -127,6 +131,19 @@ public class OxygenSealerBlockEntity extends BlockEntity {
 
         if (state.hasProperty(OxygenSealerBlock.SEALED) && state.getValue(OxygenSealerBlock.SEALED) != this.sealed) {
             level.setBlock(pos, state.setValue(OxygenSealerBlock.SEALED, this.sealed), Block.UPDATE_CLIENTS);
+        }
+
+        // Habitat acoustics: a pressurization hiss when a room is successfully sealed, and the
+        // airlock decompression cycle when an existing seal is breached. Mirrors the pressure
+        // cues of Galacticraft's Oxygen Sealer so sealing/unsealing is audible to the player.
+        if (wasSealed != this.sealed && level instanceof ServerLevel serverLevel) {
+            if (this.sealed) {
+                serverLevel.playSound(null, pos, ModSoundEvents.OXYGEN_SEALER_PRESSURIZE.get(),
+                        SoundSource.BLOCKS, 0.9F, 1.0F);
+            } else {
+                serverLevel.playSound(null, pos, ModSoundEvents.AIRLOCK_CYCLE.get(),
+                        SoundSource.BLOCKS, 0.7F, 1.0F);
+            }
         }
 
         if (stateChanged) {

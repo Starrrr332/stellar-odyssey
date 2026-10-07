@@ -1,0 +1,30 @@
+{
+  "parent": "stellarodyssey:liftoff",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:celidium_ingot"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.celidium.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.celidium.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_celidium_ingot": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "stellarodyssey:celidium_ingot"
+          }
+        ]
+      }
+    }
+  }
+}

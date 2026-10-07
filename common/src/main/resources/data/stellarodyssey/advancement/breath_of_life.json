@@ -1,0 +1,30 @@
+{
+  "parent": "stellarodyssey:root",
+  "display": {
+    "icon": {
+      "id": "stellarodyssey:oxygen_sealer"
+    },
+    "title": {
+      "translate": "advancements.stellarodyssey.breath_of_life.title"
+    },
+    "description": {
+      "translate": "advancements.stellarodyssey.breath_of_life.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_oxygen_sealer": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "stellarodyssey:oxygen_sealer"
+          }
+        ]
+      }
+    }
+  }
+}

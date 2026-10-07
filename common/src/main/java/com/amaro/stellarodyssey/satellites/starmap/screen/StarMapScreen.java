@@ -45,20 +45,43 @@ public class StarMapScreen extends Screen {
     private long animationTicks = 0L;
     private Component navigationStatusMessage = Component.literal("HYPERDRIVE READY // SELECT DESTINATION");
     private StarMapCoordinatesWidget coordinatesWidget;
+    private Button launchButton;
+    private int rocketTier = 0;
+    private int rocketEntityId = -1;
 
     public StarMapScreen(ICelestialCatalog catalog) {
-        this(Component.literal("Galactic Star Map Navigation"), catalog);
+        this(Component.literal("Galactic Star Map Navigation"), catalog, 0, -1);
     }
 
     public StarMapScreen(Component title, ICelestialCatalog catalog) {
+        this(title, catalog, 0, -1);
+    }
+
+    public StarMapScreen(ICelestialCatalog catalog, int rocketTier, int rocketEntityId) {
+        this(Component.literal("Galactic Star Map Navigation"), catalog, rocketTier, rocketEntityId);
+    }
+
+    public StarMapScreen(Component title, ICelestialCatalog catalog, int rocketTier, int rocketEntityId) {
         super(title);
         this.catalog = catalog;
+        this.rocketTier = rocketTier;
+        this.rocketEntityId = rocketEntityId;
     }
 
     @Override
     protected void init() {
         super.init();
         loadCatalogData();
+
+        if (this.rocketEntityId < 0) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null && mc.player.getVehicle() instanceof RocketEntity rocket) {
+                this.rocketEntityId = rocket.getId();
+                if (this.rocketTier <= 0) {
+                    this.rocketTier = rocket.getTierLevel();
+                }
+            }
+        }
 
         // 1. Interactive coordinates and hazard widget
         int widgetWidth = 230;
@@ -89,10 +112,12 @@ public class StarMapScreen extends Screen {
                 .bounds(214, btnY, 110, btnHeight)
                 .build());
 
-        // Plot Course / Lock Hyperdrive Button
-        addRenderableWidget(Button.builder(Component.literal("PLOT COURSE"), btn -> plotCourse())
-                .bounds(this.width - 200, btnY, 100, btnHeight)
-                .build());
+        // Engage Launch Sequence Button
+        this.launchButton = Button.builder(Component.literal("ENGAGE LAUNCH SEQUENCE"), btn -> engageLaunchSequence())
+                .bounds(this.width - 270, btnY, 170, btnHeight)
+                .build();
+        addRenderableWidget(this.launchButton);
+        updateLaunchButtonState();
 
         // Close Screen Button
         addRenderableWidget(Button.builder(Component.literal("CLOSE"), btn -> onClose())
@@ -151,27 +176,67 @@ public class StarMapScreen extends Screen {
         button.setMessage(Component.literal(getSystemFilterLabel()));
     }
 
-    private void plotCourse() {
-        if (this.selectedBody != null) {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null && mc.player.getVehicle() instanceof RocketEntity rocket) {
-                try {
-                    NetworkManager.sendToServer(new SelectDestinationPayload(
-                            rocket.getId(),
-                            this.selectedBody.dimensionKey().identifier().toString()));
-                    this.navigationStatusMessage = Component.literal(
-                            "COURSE PLOTTED: " + this.selectedBody.name().toUpperCase() + " [" + this.selectedBody.starSystemName() + "] - LAUNCH SEQUENCE STARTING");
-                    this.onClose();
-                    return;
-                } catch (Exception ignored) {
-                    // Fall through to visual-only plotting
-                }
-            }
-            this.navigationStatusMessage = Component.literal(
-                    "COURSE PLOTTED: " + this.selectedBody.name().toUpperCase() + " [" + this.selectedBody.starSystemName() + "]");
-        } else {
-            this.navigationStatusMessage = Component.literal("NO TARGET SELECTED TO PLOT COURSE");
+    private void updateLaunchButtonState() {
+        if (this.launchButton == null) {
+            return;
         }
+        if (this.selectedBody == null) {
+            this.launchButton.active = false;
+            return;
+        }
+        if (this.rocketTier > 0) {
+            int reqTier = com.amaro.stellarodyssey.registry.tiers.RocketTiers.getRequiredTier(this.selectedBody.dimensionKey());
+            boolean unlocked = reqTier > 0 && this.rocketTier >= reqTier;
+            this.launchButton.active = unlocked;
+            if (unlocked) {
+                this.launchButton.setMessage(Component.literal("ENGAGE LAUNCH SEQUENCE"));
+            } else {
+                this.launchButton.setMessage(Component.literal("LOCKED [TIER " + (reqTier > 0 ? reqTier : "?") + "]"));
+            }
+        } else {
+            this.launchButton.active = true;
+            this.launchButton.setMessage(Component.literal(this.rocketEntityId >= 0 ? "ENGAGE LAUNCH SEQUENCE" : "PLOT COURSE"));
+        }
+    }
+
+    private void engageLaunchSequence() {
+        if (this.selectedBody == null) {
+            this.navigationStatusMessage = Component.literal("NO TARGET SELECTED TO ENGAGE LAUNCH");
+            return;
+        }
+
+        if (this.rocketTier > 0 && !com.amaro.stellarodyssey.registry.tiers.RocketTiers.isDestinationAllowed(this.rocketTier, this.selectedBody.dimensionKey())) {
+            int reqTier = com.amaro.stellarodyssey.registry.tiers.RocketTiers.getRequiredTier(this.selectedBody.dimensionKey());
+            this.navigationStatusMessage = Component.literal("§cACCESS DENIED: DESTINATION REQUIRES TIER " + reqTier + " ROCKET");
+            return;
+        }
+
+        int targetId = this.rocketEntityId;
+        Minecraft mc = Minecraft.getInstance();
+        if (targetId < 0 && mc.player != null && mc.player.getVehicle() instanceof RocketEntity rocket) {
+            targetId = rocket.getId();
+        }
+
+        if (targetId >= 0) {
+            try {
+                NetworkManager.sendToServer(new SelectDestinationPayload(
+                        targetId,
+                        this.selectedBody.dimensionKey()));
+                this.navigationStatusMessage = Component.literal(
+                        "LAUNCH SEQUENCE ENGAGED: " + this.selectedBody.name().toUpperCase() + " // DESTINATION LOCKED");
+                this.onClose();
+                return;
+            } catch (Exception ignored) {
+                // Headless test or client without active server connection
+            }
+        }
+
+        this.navigationStatusMessage = Component.literal(
+                "COURSE PLOTTED: " + this.selectedBody.name().toUpperCase() + " [" + this.selectedBody.starSystemName() + "]");
+    }
+
+    private void plotCourse() {
+        engageLaunchSequence();
     }
 
     @Override
@@ -191,7 +256,17 @@ public class StarMapScreen extends Screen {
             this.selectedBody = clickedBody;
             StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(clickedBody);
             this.coordinatesWidget.updateTarget(clickedBody, coords.x(), coords.y(), coords.z(), coords.sectorCode());
-            this.navigationStatusMessage = Component.literal("TARGET LOCKED: " + clickedBody.name().toUpperCase());
+            if (this.rocketTier > 0) {
+                int req = com.amaro.stellarodyssey.registry.tiers.RocketTiers.getRequiredTier(clickedBody.dimensionKey());
+                if (this.rocketTier >= req) {
+                    this.navigationStatusMessage = Component.literal("TARGET LOCKED: " + clickedBody.name().toUpperCase() + " [UNLOCKED // READY FOR LAUNCH]");
+                } else {
+                    this.navigationStatusMessage = Component.literal("TARGET LOCKED: " + clickedBody.name().toUpperCase() + " [LOCKED - REQUIRES TIER " + req + "]");
+                }
+            } else {
+                this.navigationStatusMessage = Component.literal("TARGET LOCKED: " + clickedBody.name().toUpperCase());
+            }
+            updateLaunchButtonState();
             return true;
         }
 
@@ -234,7 +309,7 @@ public class StarMapScreen extends Screen {
             if (!filter.equals("ALL") && !filter.equalsIgnoreCase(body.starSystemName())) {
                 continue;
             }
-            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(body);
+            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(body, this.animationTicks);
             StarMapSkyRenderer.ProjectedPoint pt = StarMapSkyRenderer.project(
                     coords.x(), coords.y(), coords.z(),
                     this.width, this.height,
@@ -254,8 +329,8 @@ public class StarMapScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTick) {
-        // 1. Deep Space Skybox Background
-        StarMapSkyRenderer.renderDeepSpaceBackground(gui, this.width, this.height, this.animationTicks);
+        // 1. Procedural Logarithmic Spiral Galaxy Skybox Background (coupled to viewport pan and zoom)
+        StarMapSkyRenderer.renderDeepSpaceBackground(gui, this.width, this.height, this.panX, this.panY, this.zoom, this.animationTicks);
 
         // 2. Galactic Coordinate Grid & Range Rings
         StarMapSkyRenderer.renderGalacticGrid(gui, this.width, this.height, this.panX, this.panY, this.zoom, 50);
@@ -263,7 +338,7 @@ public class StarMapScreen extends Screen {
         // 3. Render Hyperspace Lanes between bodies in the same star system
         renderHyperspaceLanes(gui);
 
-        // 4. Render Charted Celestial Nodes
+        // 4. Render Charted Celestial Nodes with dynamic orbital and axial rotation
         this.hoveredBody = findHoveredBody(mouseX, mouseY);
         String filter = this.availableSystems.get(this.systemFilterIndex);
 
@@ -271,7 +346,7 @@ public class StarMapScreen extends Screen {
             if (!filter.equals("ALL") && !filter.equalsIgnoreCase(body.starSystemName())) {
                 continue;
             }
-            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(body);
+            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(body, this.animationTicks);
             StarMapSkyRenderer.ProjectedPoint pt = StarMapSkyRenderer.project(
                     coords.x(), coords.y(), coords.z(),
                     this.width, this.height,
@@ -282,13 +357,13 @@ public class StarMapScreen extends Screen {
             if (pt.visible()) {
                 boolean isSelected = Objects.equals(this.selectedBody, body);
                 boolean isHovered = Objects.equals(this.hoveredBody, body);
-                StarMapSkyRenderer.renderCelestialNode(gui, this.font, pt.screenX(), pt.screenY(), body, isSelected, isHovered, this.animationTicks);
+                StarMapSkyRenderer.renderCelestialNode(gui, this.font, pt.screenX(), pt.screenY(), body, isSelected, isHovered, this.animationTicks, this.rocketTier);
             }
         }
 
         // 5. Update Coordinates Widget if hovering or selecting
         if (this.hoveredBody != null && this.coordinatesWidget != null) {
-            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(this.hoveredBody);
+            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(this.hoveredBody, this.animationTicks);
             this.coordinatesWidget.updateTarget(this.hoveredBody, coords.x(), coords.y(), coords.z(), coords.sectorCode());
         }
 
@@ -321,6 +396,18 @@ public class StarMapScreen extends Screen {
             tooltip.add(Component.literal("§7Atmosphere: §f" + (this.hoveredBody.hasBreathableAtmosphere() ? "§aBreathable" : "§cToxic / Vacuum")));
             tooltip.add(Component.literal("§7Radiation: §f" + String.format("%.2f rad", this.hoveredBody.solarRadiation())));
             tooltip.add(Component.literal(this.hoveredBody.isHazardous() ? "§4⚠ HIGH HAZARD ENVIRONMENT" : "§2● NOMINAL CONDITIONS"));
+
+            if (this.rocketTier > 0) {
+                int reqTier = com.amaro.stellarodyssey.registry.tiers.RocketTiers.getRequiredTier(this.hoveredBody.dimensionKey());
+                if (reqTier > 0) {
+                    if (this.rocketTier >= reqTier) {
+                        tooltip.add(Component.literal("§a[UNLOCKED - TIER " + reqTier + " CLEARED]"));
+                    } else {
+                        tooltip.add(Component.literal("§c[LOCKED - REQUIRES TIER " + reqTier + "]"));
+                    }
+                }
+            }
+
             gui.setComponentTooltipForNextFrame(this.font, tooltip, mouseX, mouseY);
         }
     }
@@ -336,8 +423,8 @@ public class StarMapScreen extends Screen {
             for (int j = i + 1; j < this.chartedBodies.size(); j++) {
                 ICelestialBody b2 = this.chartedBodies.get(j);
                 if (Objects.equals(b1.starSystemName(), b2.starSystemName())) {
-                    StarMapSkyRenderer.SectorCoordinates c1 = StarMapSkyRenderer.getCoordinates(b1);
-                    StarMapSkyRenderer.SectorCoordinates c2 = StarMapSkyRenderer.getCoordinates(b2);
+                    StarMapSkyRenderer.SectorCoordinates c1 = StarMapSkyRenderer.getCoordinates(b1, this.animationTicks);
+                    StarMapSkyRenderer.SectorCoordinates c2 = StarMapSkyRenderer.getCoordinates(b2, this.animationTicks);
 
                     StarMapSkyRenderer.ProjectedPoint p1 = StarMapSkyRenderer.project(
                             c1.x(), c1.y(), c1.z(), this.width, this.height, this.panX, this.panY, this.zoom, 25.0F, 0.0F);
@@ -367,5 +454,13 @@ public class StarMapScreen extends Screen {
 
     public void setSelectedBody(ICelestialBody body) {
         this.selectedBody = body;
+    }
+
+    public int getRocketTier() {
+        return this.rocketTier;
+    }
+
+    public int getRocketEntityId() {
+        return this.rocketEntityId;
     }
 }

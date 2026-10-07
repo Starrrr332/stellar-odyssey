@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "I I",
+    "ICI",
+    "III"
+  ],
+  "result": {
+    "id": "stellarodyssey:spacesuit_chestplate",
+    "count": 1
+  }
+}

@@ -20,7 +20,7 @@ public final class ModMenuTypes {
     public static final RegistrySupplier<MenuType<AssemblyTableMenu>> ASSEMBLY_TABLE =
             MENU_TYPES.register("assembly_table", () -> MenuRegistry.ofExtended((id, inv, buf) -> {
                 BlockPos pos = buf.readBlockPos();
-                Level level = net.minecraft.client.Minecraft.getInstance().level;
+                Level level = inv.player.level();
                 if (level != null && level.getBlockEntity(pos) instanceof AssemblyTableBlockEntity table) {
                     return new AssemblyTableMenu(id, inv, table, ContainerLevelAccess.create(level, pos));
                 }

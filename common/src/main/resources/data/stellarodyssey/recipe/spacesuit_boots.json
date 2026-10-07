@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "I I",
+    "ICI"
+  ],
+  "result": {
+    "id": "stellarodyssey:spacesuit_boots",
+    "count": 1
+  }
+}

@@ -141,6 +141,13 @@ class ModRegistriesBindingTest {
         assertNotNull(ModSoundEvents.ALIEN_AMBIENCE, "ALIEN_AMBIENCE sound must be registered");
         assertNotNull(ModSoundEvents.RESONANCE_CRYSTAL, "RESONANCE_CRYSTAL sound must be registered");
 
+        assertNotNull(ModSoundEvents.ROCKET_THRUST_T1, "ROCKET_THRUST_T1 sound must be registered");
+        assertNotNull(ModSoundEvents.ROCKET_THRUST_T2, "ROCKET_THRUST_T2 sound must be registered");
+        assertNotNull(ModSoundEvents.ROCKET_THRUST_T3, "ROCKET_THRUST_T3 sound must be registered");
+        assertNotNull(ModSoundEvents.ATMOSPHERIC_REENTRY, "ATMOSPHERIC_REENTRY sound must be registered");
+        assertNotNull(ModSoundEvents.OXYGEN_SEALER_PRESSURIZE, "OXYGEN_SEALER_PRESSURIZE sound must be registered");
+        assertNotNull(ModSoundEvents.AIRLOCK_CYCLE, "AIRLOCK_CYCLE sound must be registered");
+
         assertEquals(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "entity.starship.thrust"),
                 ModSoundEvents.STARSHIP_THRUST.getId());
         assertEquals(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "hazard.decompression_alarm"),
@@ -149,6 +156,22 @@ class ModRegistriesBindingTest {
                 ModSoundEvents.ALIEN_AMBIENCE.getId());
         assertEquals(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "block.alien_ore.resonate"),
                 ModSoundEvents.RESONANCE_CRYSTAL.getId());
+        assertEquals(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "entity.rocket.thrust_t1"),
+                ModSoundEvents.ROCKET_THRUST_T1.getId());
+        assertEquals(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "entity.rocket.thrust_t2"),
+                ModSoundEvents.ROCKET_THRUST_T2.getId());
+        assertEquals(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "entity.rocket.thrust_t3"),
+                ModSoundEvents.ROCKET_THRUST_T3.getId());
+        assertEquals(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "entity.rocket.atmospheric_reentry"),
+                ModSoundEvents.ATMOSPHERIC_REENTRY.getId());
+        assertEquals(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "block.oxygen_sealer.pressurize"),
+                ModSoundEvents.OXYGEN_SEALER_PRESSURIZE.getId());
+        assertEquals(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "block.airlock.cycle"),
+                ModSoundEvents.AIRLOCK_CYCLE.getId());
+
+        assertEquals(ModSoundEvents.ROCKET_THRUST_T1, ModSoundEvents.getRocketThrustSupplier(1));
+        assertEquals(ModSoundEvents.ROCKET_THRUST_T2, ModSoundEvents.getRocketThrustSupplier(2));
+        assertEquals(ModSoundEvents.ROCKET_THRUST_T3, ModSoundEvents.getRocketThrustSupplier(3));
 
         Set<String> soundPaths = StreamSupport.stream(ModSoundEvents.SOUND_EVENTS.spliterator(), false)
                 .map(supplier -> supplier.getId().getPath())
@@ -158,5 +181,11 @@ class ModRegistriesBindingTest {
         assertTrue(soundPaths.contains("hazard.decompression_alarm"));
         assertTrue(soundPaths.contains("ambient.alien_world"));
         assertTrue(soundPaths.contains("block.alien_ore.resonate"));
+        assertTrue(soundPaths.contains("entity.rocket.thrust_t1"));
+        assertTrue(soundPaths.contains("entity.rocket.thrust_t2"));
+        assertTrue(soundPaths.contains("entity.rocket.thrust_t3"));
+        assertTrue(soundPaths.contains("entity.rocket.atmospheric_reentry"));
+        assertTrue(soundPaths.contains("block.oxygen_sealer.pressurize"));
+        assertTrue(soundPaths.contains("block.airlock.cycle"));
     }
 }

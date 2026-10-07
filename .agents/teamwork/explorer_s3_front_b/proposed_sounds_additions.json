@@ -1,0 +1,60 @@
+{
+  "entity.rocket.thrust_t1": {
+    "subtitle": "subtitles.stellarodyssey.rocket.thrust_t1",
+    "sounds": [
+      {
+        "name": "stellarodyssey:entity/starship/thrust",
+        "type": "sound",
+        "stream": true,
+        "pitch": 0.85,
+        "attenuation_distance": 32
+      }
+    ]
+  },
+  "entity.rocket.thrust_t2": {
+    "subtitle": "subtitles.stellarodyssey.rocket.thrust_t2",
+    "sounds": [
+      {
+        "name": "stellarodyssey:entity/starship/thrust",
+        "type": "sound",
+        "stream": true,
+        "pitch": 1.1,
+        "attenuation_distance": 36
+      }
+    ]
+  },
+  "entity.rocket.thrust_t3": {
+    "subtitle": "subtitles.stellarodyssey.rocket.thrust_t3",
+    "sounds": [
+      {
+        "name": "stellarodyssey:entity/starship/thrust",
+        "type": "sound",
+        "stream": true,
+        "pitch": 1.35,
+        "attenuation_distance": 40
+      }
+    ]
+  },
+  "entity.rocket.atmospheric_reentry": {
+    "subtitle": "subtitles.stellarodyssey.rocket.atmospheric_reentry",
+    "sounds": [
+      {
+        "name": "stellarodyssey:ambient/alien_world",
+        "type": "sound",
+        "pitch": 0.7,
+        "attenuation_distance": 48
+      }
+    ]
+  },
+  "block.oxygen_sealer.pressurize": {
+    "subtitle": "subtitles.stellarodyssey.oxygen_sealer.pressurize",
+    "sounds": [
+      {
+        "name": "stellarodyssey:block/alien_ore/resonate",
+        "type": "sound",
+        "pitch": 1.5,
+        "attenuation_distance": 16
+      }
+    ]
+  }
+}
