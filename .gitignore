@@ -23,6 +23,12 @@ bin/
 .DS_Store
 Thumbs.db
 
+# FreeBuff tooling metadata (local project id, not source)
+.freebuff/
+
+# Local SDK configuration
+local.properties
+
 
 
 
