@@ -34,3 +34,6 @@ local.properties
 
 # Bot automation screenshots
 tools/bot/*.png
+
+# Game logs (dev-run & test-worker output)
+common/logs/
