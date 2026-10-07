@@ -39,6 +39,7 @@ public final class StellarOdyssey {
         ModNetworking.init();
         LifeSupportManager.init();
         PlanetaryGravityManager.init();
+        com.amaro.stellarodyssey.command.AtmosphereCommand.register();
 
         ModLifecycleManager.fireStage(ModLifecycleStage.COMMON_SETUP);
 
