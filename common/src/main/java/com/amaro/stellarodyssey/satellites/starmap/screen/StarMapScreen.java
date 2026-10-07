@@ -94,34 +94,34 @@ public class StarMapScreen extends Screen {
         int btnHeight = 20;
 
         // Reset View Button
-        addRenderableWidget(Button.builder(Component.literal("RESET VIEW"), btn -> resetView())
-                .bounds(12, btnY, 80, btnHeight)
+        addRenderableWidget(Button.builder(Component.literal("RESET"), btn -> resetView())
+                .bounds(12, btnY, 50, btnHeight)
                 .build());
 
         // Zoom In / Out Buttons
         addRenderableWidget(Button.builder(Component.literal("ZOOM +"), btn -> adjustZoom(0.25F))
-                .bounds(96, btnY, 55, btnHeight)
+                .bounds(66, btnY, 50, btnHeight)
                 .build());
 
         addRenderableWidget(Button.builder(Component.literal("ZOOM -"), btn -> adjustZoom(-0.25F))
-                .bounds(155, btnY, 55, btnHeight)
+                .bounds(120, btnY, 50, btnHeight)
                 .build());
 
         // Star System Filter Button
         addRenderableWidget(Button.builder(Component.literal(getSystemFilterLabel()), this::cycleSystemFilter)
-                .bounds(214, btnY, 110, btnHeight)
+                .bounds(174, btnY, 80, btnHeight)
                 .build());
 
         // Engage Launch Sequence Button
-        this.launchButton = Button.builder(Component.literal("ENGAGE LAUNCH SEQUENCE"), btn -> engageLaunchSequence())
-                .bounds(this.width - 270, btnY, 170, btnHeight)
+        this.launchButton = Button.builder(Component.literal("LAUNCH SEQUENCE"), btn -> engageLaunchSequence())
+                .bounds(this.width - 170, btnY, 110, btnHeight)
                 .build();
         addRenderableWidget(this.launchButton);
         updateLaunchButtonState();
 
         // Close Screen Button
         addRenderableWidget(Button.builder(Component.literal("CLOSE"), btn -> onClose())
-                .bounds(this.width - 92, btnY, 80, btnHeight)
+                .bounds(this.width - 56, btnY, 44, btnHeight)
                 .build());
 
         // Update widget with initial selection if available
@@ -371,11 +371,11 @@ public class StarMapScreen extends Screen {
         gui.fill(0, 0, this.width, 28, 0xEE080E1C);
         gui.fill(0, 27, this.width, 28, 0xFF00E5FF);
 
-        String mainTitle = "STELLAR ODYSSEY // CELESTIAL CARTOGRAPHY & HYPERSPACE NAVIGATION";
+        String mainTitle = "STELLAR ODYSSEY // NAV-COMPUTER";
         gui.text(this.font, Component.literal(mainTitle), 14, 9, 0xFF00E5FF);
 
-        String statsBadge = String.format("[CHARTED: %d | ZOOM: %.2fx | SYS: %s]",
-                this.chartedBodies.size(), this.zoom, this.availableSystems.get(this.systemFilterIndex));
+        String statsBadge = String.format("[CHARTED: %d | SYS: %s]",
+                this.chartedBodies.size(), this.availableSystems.get(this.systemFilterIndex));
         gui.text(this.font, Component.literal(statsBadge), this.width - this.font.width(statsBadge) - 14, 9, 0xFF80DEEA);
 
         // 7. Bottom Navigation Status Strip
