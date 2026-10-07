@@ -19,14 +19,20 @@ public final class StellarOdyssey {
     public static final String MOD_ID = ModConstants.MOD_ID;
     public static final Logger LOGGER = ModConstants.LOGGER;
 
+    private static boolean initialized;
+    private static boolean serverStartingHookRegistered;
+
     private StellarOdyssey() {
     }
 
-    public static void init() {
+    public static synchronized void init() {
+        if (initialized) {
+            return;
+        }
+
+        // Discover lifecycle modules through the SatelliteModule SPI, keeping the core entrypoint
+        // independent from individual satellite implementations.
         ModLifecycleManager.init();
-        com.amaro.stellarodyssey.satellites.worldgen.WorldGenSatellite.init();
-        com.amaro.stellarodyssey.satellites.ecology.EcologySatellite.init();
-        com.amaro.stellarodyssey.satellites.starmap.StarMapSatellite.init();
         ModRegistries.registerAll();
         ModLifecycleManager.fireStage(ModLifecycleStage.REGISTRY);
 
@@ -36,8 +42,12 @@ public final class StellarOdyssey {
 
         ModLifecycleManager.fireStage(ModLifecycleStage.COMMON_SETUP);
 
-        LifecycleEvent.SERVER_STARTING.register(server -> serverStarting());
+        if (!serverStartingHookRegistered) {
+            LifecycleEvent.SERVER_STARTING.register(server -> serverStarting());
+            serverStartingHookRegistered = true;
+        }
 
+        initialized = true;
         LOGGER.info("Stellar Odyssey initialised - preparing for launch.");
     }
 

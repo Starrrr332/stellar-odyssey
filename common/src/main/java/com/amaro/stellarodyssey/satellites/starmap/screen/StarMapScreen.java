@@ -36,13 +36,15 @@ public class StarMapScreen extends Screen {
 
     private double panX = 0.0;
     private double panY = 0.0;
+    private double targetPanX = 0.0;
+    private double targetPanY = 0.0;
+    private double mapOffsetX;
     private float zoom = 1.0F;
+    private float targetZoom = 1.0F;
 
     private boolean isDragging = false;
-    private double lastDragMouseX;
-    private double lastDragMouseY;
-
-    private long animationTicks = 0L;
+    private double animationTicks = 0.0;
+    private float transitionProgress;
     private Component navigationStatusMessage = Component.literal("HYPERDRIVE READY // SELECT DESTINATION");
     private StarMapCoordinatesWidget coordinatesWidget;
     private Button launchButton;
@@ -72,6 +74,9 @@ public class StarMapScreen extends Screen {
     protected void init() {
         super.init();
         loadCatalogData();
+        this.targetZoom = this.zoom;
+        this.targetPanX = this.panX;
+        this.targetPanY = this.panY;
 
         if (this.rocketEntityId < 0) {
             Minecraft mc = Minecraft.getInstance();
@@ -83,46 +88,48 @@ public class StarMapScreen extends Screen {
             }
         }
 
-        // 1. Interactive coordinates and hazard widget
-        int widgetWidth = 230;
-        int widgetHeight = 175;
-        this.coordinatesWidget = new StarMapCoordinatesWidget(12, 36, widgetWidth, widgetHeight);
+        // Adapt the telemetry panel to the available GUI resolution and scale.
+        int margin = Math.clamp(this.width / 48, 6, 12);
+        int widgetWidth = Math.clamp(this.width / 3, 168, 230);
+        int widgetHeight = Math.clamp(this.height - 104, 24, 175);
+        double previousMapOffsetX = this.mapOffsetX;
+        this.mapOffsetX = (widgetWidth + margin - 2.0) * 0.5;
+        double mapOffsetDelta = this.mapOffsetX - previousMapOffsetX;
+        this.panX += mapOffsetDelta;
+        this.targetPanX += mapOffsetDelta;
+        this.coordinatesWidget = new StarMapCoordinatesWidget(margin, 36, widgetWidth, widgetHeight);
         addRenderableWidget(this.coordinatesWidget);
 
-        // 2. Control buttons in the bottom toolbar
+        // Scale and distribute toolbar controls relative to the window, including compact resolutions.
+        boolean compact = this.width < 360;
+        int gap = compact ? 2 : 4;
+        int controlWidth = compact ? 24 : (this.width < 440 ? 38 : 48);
+        int filterWidth = compact ? 38 : (this.width < 440 ? 64 : 78);
+        int launchWidth = Math.clamp(this.width / 4, compact ? 54 : 82, 112);
+        int closeWidth = compact ? 32 : 44;
         int btnY = this.height - 28;
         int btnHeight = 20;
+        int x = margin;
 
-        // Reset View Button
-        addRenderableWidget(Button.builder(Component.literal("RESET"), btn -> resetView())
-                .bounds(12, btnY, 50, btnHeight)
-                .build());
+        addRenderableWidget(Button.builder(Component.literal(compact ? "R" : "RESET"), btn -> resetView())
+                .bounds(x, btnY, controlWidth, btnHeight).build());
+        x += controlWidth + gap;
+        addRenderableWidget(Button.builder(Component.literal("+"), btn -> adjustZoom(0.25F))
+                .bounds(x, btnY, controlWidth, btnHeight).build());
+        x += controlWidth + gap;
+        addRenderableWidget(Button.builder(Component.literal(compact ? "-" : "ZOOM -"), btn -> adjustZoom(-0.25F))
+                .bounds(x, btnY, controlWidth, btnHeight).build());
+        x += controlWidth + gap;
+        addRenderableWidget(Button.builder(Component.literal(compact ? "SYS" : getSystemFilterLabel()), this::cycleSystemFilter)
+                .bounds(x, btnY, filterWidth, btnHeight).build());
 
-        // Zoom In / Out Buttons
-        addRenderableWidget(Button.builder(Component.literal("ZOOM +"), btn -> adjustZoom(0.25F))
-                .bounds(66, btnY, 50, btnHeight)
-                .build());
-
-        addRenderableWidget(Button.builder(Component.literal("ZOOM -"), btn -> adjustZoom(-0.25F))
-                .bounds(120, btnY, 50, btnHeight)
-                .build());
-
-        // Star System Filter Button
-        addRenderableWidget(Button.builder(Component.literal(getSystemFilterLabel()), this::cycleSystemFilter)
-                .bounds(174, btnY, 80, btnHeight)
-                .build());
-
-        // Engage Launch Sequence Button
-        this.launchButton = Button.builder(Component.literal("LAUNCH SEQUENCE"), btn -> engageLaunchSequence())
-                .bounds(this.width - 170, btnY, 110, btnHeight)
+        this.launchButton = Button.builder(Component.literal(compact ? "GO" : "LAUNCH"), btn -> engageLaunchSequence())
+                .bounds(this.width - margin - closeWidth - gap - launchWidth, btnY, launchWidth, btnHeight)
                 .build();
         addRenderableWidget(this.launchButton);
         updateLaunchButtonState();
-
-        // Close Screen Button
-        addRenderableWidget(Button.builder(Component.literal("CLOSE"), btn -> onClose())
-                .bounds(this.width - 56, btnY, 44, btnHeight)
-                .build());
+        addRenderableWidget(Button.builder(Component.literal(compact ? "X" : "CLOSE"), btn -> onClose())
+                .bounds(this.width - margin - closeWidth, btnY, closeWidth, btnHeight).build());
 
         // Update widget with initial selection if available
         if (this.selectedBody != null) {
@@ -135,6 +142,7 @@ public class StarMapScreen extends Screen {
         this.chartedBodies.clear();
         this.availableSystems.clear();
         this.availableSystems.add("ALL");
+        this.systemFilterIndex = 0;
 
         if (this.catalog != null) {
             Collection<ICelestialBody> all = this.catalog.getAllBodies();
@@ -148,23 +156,46 @@ public class StarMapScreen extends Screen {
             }
         }
 
+        this.chartedBodies.removeIf(Objects::isNull);
+        this.availableSystems.removeIf(system -> system == null || system.isBlank());
+
         if (this.selectedBody == null && !this.chartedBodies.isEmpty()) {
             this.selectedBody = this.chartedBodies.getFirst();
         }
     }
 
     private void resetView() {
-        this.panX = 0.0;
-        this.panY = 0.0;
-        this.zoom = 1.0F;
+        this.targetPanX = this.mapOffsetX;
+        this.targetPanY = 0.0;
+        this.targetZoom = 1.0F;
     }
 
     private void adjustZoom(float delta) {
-        this.zoom = (float) Math.clamp(this.zoom + delta, 0.4F, 3.0F);
+        this.targetZoom = (float) Math.clamp(this.targetZoom + delta, 0.4F, 3.0F);
+    }
+
+    private void focusOnBody(ICelestialBody body) {
+        if (body == null) {
+            return;
+        }
+        StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(body, this.animationTicks);
+        this.targetZoom = 1.45F;
+        double pitch = Math.toRadians(25.0);
+        double projectedY = coords.y() * Math.cos(pitch) - coords.z() * Math.sin(pitch);
+        this.targetPanX = this.mapOffsetX - coords.x() * this.targetZoom;
+        this.targetPanY = -projectedY * this.targetZoom;
+    }
+
+    private String getCurrentSystemFilter() {
+        if (this.availableSystems.isEmpty()) {
+            return "ALL";
+        }
+        int index = Math.clamp(this.systemFilterIndex, 0, this.availableSystems.size() - 1);
+        return this.availableSystems.get(index);
     }
 
     private String getSystemFilterLabel() {
-        String sys = this.availableSystems.get(this.systemFilterIndex);
+        String sys = getCurrentSystemFilter();
         return "SYS: " + (sys.length() > 8 ? sys.substring(0, 8) + ".." : sys);
     }
 
@@ -173,7 +204,7 @@ public class StarMapScreen extends Screen {
             return;
         }
         this.systemFilterIndex = (this.systemFilterIndex + 1) % this.availableSystems.size();
-        button.setMessage(Component.literal(getSystemFilterLabel()));
+        button.setMessage(Component.literal(this.width < 360 ? "SYS" : getSystemFilterLabel()));
     }
 
     private void updateLaunchButtonState() {
@@ -182,20 +213,26 @@ public class StarMapScreen extends Screen {
         }
         if (this.selectedBody == null) {
             this.launchButton.active = false;
+            this.launchButton.setMessage(Component.literal(this.width < 360 ? "GO" : "LAUNCH"));
             return;
         }
+
         if (this.rocketTier > 0) {
             int reqTier = com.amaro.stellarodyssey.registry.tiers.RocketTiers.getRequiredTier(this.selectedBody.dimensionKey());
             boolean unlocked = reqTier > 0 && this.rocketTier >= reqTier;
             this.launchButton.active = unlocked;
             if (unlocked) {
-                this.launchButton.setMessage(Component.literal("ENGAGE LAUNCH SEQUENCE"));
+                this.launchButton.setMessage(Component.literal(this.width < 360 ? "GO" : "LAUNCH"));
             } else {
-                this.launchButton.setMessage(Component.literal("LOCKED [TIER " + (reqTier > 0 ? reqTier : "?") + "]"));
+                this.launchButton.setMessage(Component.literal(this.width < 360
+                        ? "T" + (reqTier > 0 ? reqTier : "?") + " LOCK"
+                        : "LOCKED [TIER " + (reqTier > 0 ? reqTier : "?") + "]"));
             }
         } else {
             this.launchButton.active = true;
-            this.launchButton.setMessage(Component.literal(this.rocketEntityId >= 0 ? "ENGAGE LAUNCH SEQUENCE" : "PLOT COURSE"));
+            this.launchButton.setMessage(Component.literal(this.width < 360
+                    ? "GO"
+                    : (this.rocketEntityId >= 0 ? "ENGAGE LAUNCH SEQUENCE" : "PLOT COURSE")));
         }
     }
 
@@ -207,7 +244,7 @@ public class StarMapScreen extends Screen {
 
         if (this.rocketTier > 0 && !com.amaro.stellarodyssey.registry.tiers.RocketTiers.isDestinationAllowed(this.rocketTier, this.selectedBody.dimensionKey())) {
             int reqTier = com.amaro.stellarodyssey.registry.tiers.RocketTiers.getRequiredTier(this.selectedBody.dimensionKey());
-            this.navigationStatusMessage = Component.literal("§cACCESS DENIED: DESTINATION REQUIRES TIER " + reqTier + " ROCKET");
+            this.navigationStatusMessage = Component.literal("Â§cACCESS DENIED: DESTINATION REQUIRES TIER " + reqTier + " ROCKET");
             return;
         }
 
@@ -242,23 +279,43 @@ public class StarMapScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        this.animationTicks++;
+        this.animationTicks += 1.0;
+        this.transitionProgress = Math.min(1.0F, this.transitionProgress + 0.075F);
+
+        // Exponential easing keeps zoom and panning fluid without retaining input history.
+        this.zoom += (this.targetZoom - this.zoom) * 0.22F;
+        this.panX += (this.targetPanX - this.panX) * 0.22;
+        this.panY += (this.targetPanY - this.panY) * 0.22;
+        if (Math.abs(this.targetZoom - this.zoom) < 0.0005F) {
+            this.zoom = this.targetZoom;
+        }
+        if (Math.abs(this.targetPanX - this.panX) < 0.01) {
+            this.panX = this.targetPanX;
+        }
+        if (Math.abs(this.targetPanY - this.panY) < 0.01) {
+            this.panY = this.targetPanY;
+        }
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean isDouble) {
+        if (super.mouseClicked(event, isDouble)) {
+            return true;
+        }
+
         double mx = event.x();
         double my = event.y();
 
         // 1. Check if clicking on any charted celestial node in the viewport
-        ICelestialBody clickedBody = findHoveredBody(mx, my);
+        ICelestialBody clickedBody = findHoveredBody(mx, my, this.animationTicks);
         if (clickedBody != null) {
             this.selectedBody = clickedBody;
-            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(clickedBody);
+            focusOnBody(clickedBody);
+            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(clickedBody, this.animationTicks);
             this.coordinatesWidget.updateTarget(clickedBody, coords.x(), coords.y(), coords.z(), coords.sectorCode());
             if (this.rocketTier > 0) {
                 int req = com.amaro.stellarodyssey.registry.tiers.RocketTiers.getRequiredTier(clickedBody.dimensionKey());
-                if (this.rocketTier >= req) {
+                if (req > 0 && this.rocketTier >= req) {
                     this.navigationStatusMessage = Component.literal("TARGET LOCKED: " + clickedBody.name().toUpperCase() + " [UNLOCKED // READY FOR LAUNCH]");
                 } else {
                     this.navigationStatusMessage = Component.literal("TARGET LOCKED: " + clickedBody.name().toUpperCase() + " [LOCKED - REQUIRES TIER " + req + "]");
@@ -271,13 +328,15 @@ public class StarMapScreen extends Screen {
         }
 
         // 2. If clicking on empty map area (not interacting with widgets)
-        if (event.button() == 0 && (my > 30 && my < this.height - 32) && (mx > 250 || my > 220)) {
+        int mapLeft = getMapViewportLeft();
+        if (event.button() == 0 && mx >= mapLeft && mx < this.width - 10
+                && my >= 34 && my < this.height - 40) {
             this.isDragging = true;
-            this.lastDragMouseX = mx;
-            this.lastDragMouseY = my;
+            this.targetPanX = this.panX;
+            this.targetPanY = this.panY;
         }
 
-        return super.mouseClicked(event, isDouble);
+        return false;
     }
 
     @Override
@@ -289,8 +348,8 @@ public class StarMapScreen extends Screen {
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
         if (this.isDragging) {
-            this.panX += dragX;
-            this.panY += dragY;
+            this.targetPanX += dragX;
+            this.targetPanY += dragY;
             return true;
         }
         return super.mouseDragged(event, dragX, dragY);
@@ -298,18 +357,44 @@ public class StarMapScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (mouseX < getMapViewportLeft() || mouseX >= this.width - 10
+                || mouseY < 34 || mouseY >= this.height - 40) {
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        }
+
+        float previousZoom = this.targetZoom;
         adjustZoom((float) (scrollY * 0.15F));
+        if (Math.abs(this.targetZoom - previousZoom) < 1.0E-4F) {
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        }
+
+        // Keep the world point beneath the cursor stationary while zooming.
+        double worldX = (mouseX - this.width * 0.5 - this.targetPanX) / previousZoom;
+        double worldY = (mouseY - this.height * 0.5 - this.targetPanY) / previousZoom;
+        this.targetPanX = mouseX - this.width * 0.5 - worldX * this.targetZoom;
+        this.targetPanY = mouseY - this.height * 0.5 - worldY * this.targetZoom;
         return true;
     }
 
-    private ICelestialBody findHoveredBody(double mouseX, double mouseY) {
-        String filter = this.availableSystems.get(this.systemFilterIndex);
+    private int getMapViewportLeft() {
+        return this.coordinatesWidget != null
+                ? this.coordinatesWidget.getX() + this.coordinatesWidget.getWidth() + 8
+                : Math.clamp(this.width / 3, 168, 230) + 20;
+    }
+
+    private ICelestialBody findHoveredBody(double mouseX, double mouseY, double renderTicks) {
+        if (mouseX < getMapViewportLeft() || mouseX >= this.width - 10
+                || mouseY < 34 || mouseY >= this.height - 40) {
+            return null;
+        }
+
+        String filter = getCurrentSystemFilter();
 
         for (ICelestialBody body : this.chartedBodies) {
             if (!filter.equals("ALL") && !filter.equalsIgnoreCase(body.starSystemName())) {
                 continue;
             }
-            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(body, this.animationTicks);
+            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(body, renderTicks);
             StarMapSkyRenderer.ProjectedPoint pt = StarMapSkyRenderer.project(
                     coords.x(), coords.y(), coords.z(),
                     this.width, this.height,
@@ -329,24 +414,31 @@ public class StarMapScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTick) {
-        // 1. Procedural Logarithmic Spiral Galaxy Skybox Background (coupled to viewport pan and zoom)
-        StarMapSkyRenderer.renderDeepSpaceBackground(gui, this.width, this.height, this.panX, this.panY, this.zoom, this.animationTicks);
+        double renderTicks = this.animationTicks + partialTick;
+        this.hoveredBody = findHoveredBody(mouseX, mouseY, renderTicks);
+
+        // 1. Procedural spiral galaxy with sub-tick motion interpolation and eased viewport controls.
+        StarMapSkyRenderer.renderDeepSpaceBackground(gui, this.width, this.height,
+                this.panX, this.panY, this.zoom, renderTicks);
 
         // 2. Galactic Coordinate Grid & Range Rings
-        StarMapSkyRenderer.renderGalacticGrid(gui, this.width, this.height, this.panX, this.panY, this.zoom, 50);
+        StarMapSkyRenderer.renderGalacticGrid(gui, this.width, this.height,
+                this.panX, this.panY, this.zoom, 50);
 
         // 3. Render Hyperspace Lanes between bodies in the same star system
-        renderHyperspaceLanes(gui);
+        renderHyperspaceLanes(gui, renderTicks);
 
-        // 4. Render Charted Celestial Nodes with dynamic orbital and axial rotation
-        this.hoveredBody = findHoveredBody(mouseX, mouseY);
-        String filter = this.availableSystems.get(this.systemFilterIndex);
+        // Subtle custom HUD texture: corner brackets, moving scan line, and layered frame highlights.
+        renderMapFrame(gui, renderTicks);
+
+        // 4. Render Charted Celestial Nodes with dynamic orbital and axial rotation.
+        String filter = getCurrentSystemFilter();
 
         for (ICelestialBody body : this.chartedBodies) {
             if (!filter.equals("ALL") && !filter.equalsIgnoreCase(body.starSystemName())) {
                 continue;
             }
-            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(body, this.animationTicks);
+            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(body, renderTicks);
             StarMapSkyRenderer.ProjectedPoint pt = StarMapSkyRenderer.project(
                     coords.x(), coords.y(), coords.z(),
                     this.width, this.height,
@@ -357,53 +449,65 @@ public class StarMapScreen extends Screen {
             if (pt.visible()) {
                 boolean isSelected = Objects.equals(this.selectedBody, body);
                 boolean isHovered = Objects.equals(this.hoveredBody, body);
-                StarMapSkyRenderer.renderCelestialNode(gui, this.font, pt.screenX(), pt.screenY(), body, isSelected, isHovered, this.animationTicks, this.rocketTier);
+                StarMapSkyRenderer.renderCelestialNode(gui, this.font, pt.screenX(), pt.screenY(), body, isSelected, isHovered, renderTicks, this.rocketTier);
             }
         }
 
         // 5. Update Coordinates Widget if hovering or selecting
-        if (this.hoveredBody != null && this.coordinatesWidget != null) {
-            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(this.hoveredBody, this.animationTicks);
-            this.coordinatesWidget.updateTarget(this.hoveredBody, coords.x(), coords.y(), coords.z(), coords.sectorCode());
+        ICelestialBody telemetryBody = this.hoveredBody != null ? this.hoveredBody : this.selectedBody;
+        if (telemetryBody != null && this.coordinatesWidget != null) {
+            StarMapSkyRenderer.SectorCoordinates coords = StarMapSkyRenderer.getCoordinates(telemetryBody, renderTicks);
+            this.coordinatesWidget.updateTarget(telemetryBody, coords.x(), coords.y(), coords.z(), coords.sectorCode());
+        }
+
+        // Smooth screen-in reveal layered over the map, followed by the instrument chrome.
+        int revealAlpha = Math.round(96.0F * (1.0F - this.transitionProgress));
+        if (revealAlpha > 0) {
+            gui.fill(0, 28, this.width, this.height - 34, (revealAlpha << 24) | 0x00020712);
         }
 
         // 6. Top Header Bar & Navigation Title
-        gui.fill(0, 0, this.width, 28, 0xEE080E1C);
-        gui.fill(0, 27, this.width, 28, 0xFF00E5FF);
+        int headerInset = Math.clamp(this.width / 60, 6, 14);
+        gui.fill(headerInset, 0, this.width - headerInset, 28, 0xE8080E1C);
+        gui.fill(headerInset, 27, this.width - headerInset, 28, 0xFF00E5FF);
+        gui.fill(headerInset, 2, headerInset + 34, 3, 0xFF80DEEA);
+        gui.fill(this.width - headerInset - 34, 2, this.width - headerInset, 3, 0xFF80DEEA);
 
-        String mainTitle = "STELLAR ODYSSEY // NAV-COMPUTER";
-        gui.text(this.font, Component.literal(mainTitle), 14, 9, 0xFF00E5FF);
+        String mainTitle = this.width < 420 ? "STELLAR ODYSSEY // NAV" : "STELLAR ODYSSEY // NAV-COMPUTER";
+        gui.text(this.font, Component.literal(mainTitle), headerInset + 6, 9, 0xFF00E5FF);
 
-        String statsBadge = String.format("[CHARTED: %d | SYS: %s]",
-                this.chartedBodies.size(), this.availableSystems.get(this.systemFilterIndex));
-        gui.text(this.font, Component.literal(statsBadge), this.width - this.font.width(statsBadge) - 14, 9, 0xFF80DEEA);
+        if (this.width >= 420) {
+            String statsBadge = "[CHARTED: " + this.chartedBodies.size() + " | SYS: " + getCurrentSystemFilter() + "]";
+            gui.text(this.font, Component.literal(statsBadge), this.width - this.font.width(statsBadge) - headerInset - 6, 9, 0xFF80DEEA);
+        }
 
         // 7. Bottom Navigation Status Strip
-        gui.fill(0, this.height - 34, this.width, this.height, 0xEE080E1C);
-        gui.fill(0, this.height - 34, this.width, this.height - 33, 0x8000E5FF);
+        gui.fill(headerInset, this.height - 34, this.width - headerInset, this.height, 0xE8080E1C);
+        gui.fill(headerInset, this.height - 34, this.width - headerInset, this.height - 33, 0xFF00E5FF);
+        gui.fill(headerInset, this.height - 2, this.width - headerInset, this.height - 1, 0xFF16404A);
 
-        gui.text(this.font, this.navigationStatusMessage, 14, this.height - 22, 0xFF00E676);
+        gui.text(this.font, this.navigationStatusMessage, headerInset + 4, this.height - 22, 0xFF00E676);
 
         // 8. Render Widgets (Coordinates Widget, Buttons)
         super.extractRenderState(gui, mouseX, mouseY, partialTick);
 
         // 9. Tooltip for hovered body
         if (this.hoveredBody != null) {
-            List<Component> tooltip = new ArrayList<>();
-            tooltip.add(Component.literal("§b§l" + this.hoveredBody.name().toUpperCase()));
-            tooltip.add(Component.literal("§7System: §f" + this.hoveredBody.starSystemName()));
-            tooltip.add(Component.literal("§7Gravity: §f" + String.format("%.2fg", this.hoveredBody.gravityMultiplier())));
-            tooltip.add(Component.literal("§7Atmosphere: §f" + (this.hoveredBody.hasBreathableAtmosphere() ? "§aBreathable" : "§cToxic / Vacuum")));
-            tooltip.add(Component.literal("§7Radiation: §f" + String.format("%.2f rad", this.hoveredBody.solarRadiation())));
-            tooltip.add(Component.literal(this.hoveredBody.isHazardous() ? "§4⚠ HIGH HAZARD ENVIRONMENT" : "§2● NOMINAL CONDITIONS"));
+            List<Component> tooltip = new ArrayList<>(8);
+            tooltip.add(Component.literal("Â§bÂ§l" + this.hoveredBody.name().toUpperCase()));
+            tooltip.add(Component.literal("Â§7System: Â§f" + this.hoveredBody.starSystemName()));
+            tooltip.add(Component.literal("Â§7Gravity: Â§f" + String.format("%.2fg", this.hoveredBody.gravityMultiplier())));
+            tooltip.add(Component.literal("Â§7Atmosphere: Â§f" + (this.hoveredBody.hasBreathableAtmosphere() ? "Â§aBreathable" : "Â§cToxic / Vacuum")));
+            tooltip.add(Component.literal("Â§7Radiation: Â§f" + String.format("%.2f rad", this.hoveredBody.solarRadiation())));
+            tooltip.add(Component.literal(this.hoveredBody.isHazardous() ? "Â§4âš  HIGH HAZARD ENVIRONMENT" : "Â§2â— NOMINAL CONDITIONS"));
 
             if (this.rocketTier > 0) {
                 int reqTier = com.amaro.stellarodyssey.registry.tiers.RocketTiers.getRequiredTier(this.hoveredBody.dimensionKey());
                 if (reqTier > 0) {
                     if (this.rocketTier >= reqTier) {
-                        tooltip.add(Component.literal("§a[UNLOCKED - TIER " + reqTier + " CLEARED]"));
+                        tooltip.add(Component.literal("Â§a[UNLOCKED - TIER " + reqTier + " CLEARED]"));
                     } else {
-                        tooltip.add(Component.literal("§c[LOCKED - REQUIRES TIER " + reqTier + "]"));
+                        tooltip.add(Component.literal("Â§c[LOCKED - REQUIRES TIER " + reqTier + "]"));
                     }
                 }
             }
@@ -412,8 +516,56 @@ public class StarMapScreen extends Screen {
         }
     }
 
-    private void renderHyperspaceLanes(GuiGraphicsExtractor gui) {
-        String filter = this.availableSystems.get(this.systemFilterIndex);
+    /**
+     * Draws a bespoke, texture-like navigation frame from low-cost GUI primitives.
+     * It adds a sweeping scanner, edge ticks and animated corner brackets without a shader dependency.
+     */
+    private void renderMapFrame(GuiGraphicsExtractor gui, double renderTicks) {
+        int left = this.coordinatesWidget != null
+                ? this.coordinatesWidget.getX() + this.coordinatesWidget.getWidth() + 8
+                : Math.clamp(this.width / 3, 168, 230) + 20;
+        int right = this.width - 10;
+        int top = 34;
+        int bottom = this.height - 40;
+        if (right <= left || bottom <= top) {
+            return;
+        }
+
+        int edge = 0x4037DFFF;
+        int bright = 0xA037DFFF;
+        int corner = Math.clamp(Math.min(right - left, bottom - top) / 10, 8, 18);
+        gui.fill(left, top, right, top + 1, edge);
+        gui.fill(left, bottom - 1, right, bottom, edge);
+        gui.fill(left, top, left + 1, bottom, edge);
+        gui.fill(right - 1, top, right, bottom, edge);
+
+        gui.fill(left, top, left + corner, top + 2, bright);
+        gui.fill(left, top, left + 2, top + corner, bright);
+        gui.fill(right - corner, top, right, top + 2, bright);
+        gui.fill(right - 2, top, right, top + corner, bright);
+        gui.fill(left, bottom - 2, left + corner, bottom, bright);
+        gui.fill(left, bottom - corner, left + 2, bottom, bright);
+        gui.fill(right - corner, bottom - 2, right, bottom, bright);
+        gui.fill(right - 2, bottom - corner, right, bottom, bright);
+
+        int tickStep = Math.max(14, (right - left) / 24);
+        for (int x = left + tickStep; x < right; x += tickStep) {
+            gui.fill(x, top, x + 1, top + 3, edge);
+            gui.fill(x, bottom - 3, x + 1, bottom, edge);
+        }
+        for (int y = top + tickStep; y < bottom; y += tickStep) {
+            gui.fill(left, y, left + 3, y + 1, edge);
+            gui.fill(right - 3, y, right, y + 1, edge);
+        }
+
+        int scanRange = Math.max(1, bottom - top - 8);
+        int scanY = top + 4 + (int) ((renderTicks * 1.25) % scanRange);
+        gui.fill(left + 2, scanY - 1, right - 2, scanY + 2, 0x1237DFFF);
+        gui.fill(left + 2, scanY, right - 2, scanY + 1, 0x4037DFFF);
+    }
+
+    private void renderHyperspaceLanes(GuiGraphicsExtractor gui, double renderTicks) {
+        String filter = getCurrentSystemFilter();
 
         for (int i = 0; i < this.chartedBodies.size(); i++) {
             ICelestialBody b1 = this.chartedBodies.get(i);
@@ -423,16 +575,18 @@ public class StarMapScreen extends Screen {
             for (int j = i + 1; j < this.chartedBodies.size(); j++) {
                 ICelestialBody b2 = this.chartedBodies.get(j);
                 if (Objects.equals(b1.starSystemName(), b2.starSystemName())) {
-                    StarMapSkyRenderer.SectorCoordinates c1 = StarMapSkyRenderer.getCoordinates(b1, this.animationTicks);
-                    StarMapSkyRenderer.SectorCoordinates c2 = StarMapSkyRenderer.getCoordinates(b2, this.animationTicks);
+                    StarMapSkyRenderer.SectorCoordinates c1 = StarMapSkyRenderer.getCoordinates(b1, renderTicks);
+                    StarMapSkyRenderer.SectorCoordinates c2 = StarMapSkyRenderer.getCoordinates(b2, renderTicks);
 
                     StarMapSkyRenderer.ProjectedPoint p1 = StarMapSkyRenderer.project(
-                            c1.x(), c1.y(), c1.z(), this.width, this.height, this.panX, this.panY, this.zoom, 25.0F, 0.0F);
+                            c1.x(), c1.y(), c1.z(), this.width, this.height,
+                            this.panX, this.panY, this.zoom, 25.0F, 0.0F);
                     StarMapSkyRenderer.ProjectedPoint p2 = StarMapSkyRenderer.project(
-                            c2.x(), c2.y(), c2.z(), this.width, this.height, this.panX, this.panY, this.zoom, 25.0F, 0.0F);
+                            c2.x(), c2.y(), c2.z(), this.width, this.height,
+                            this.panX, this.panY, this.zoom, 25.0F, 0.0F);
 
                     if (p1.visible() || p2.visible()) {
-                        StarMapSkyRenderer.renderHyperspaceLane(gui, p1.screenX(), p1.screenY(), p2.screenX(), p2.screenY(), 0x3300E5FF, this.animationTicks);
+                        StarMapSkyRenderer.renderHyperspaceLane(gui, p1.screenX(), p1.screenY(), p2.screenX(), p2.screenY(), 0x3300E5FF, renderTicks);
                     }
                 }
             }

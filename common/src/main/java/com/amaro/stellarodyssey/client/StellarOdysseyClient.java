@@ -10,7 +10,12 @@ import com.amaro.stellarodyssey.client.model.StarshipModel;
 import com.amaro.stellarodyssey.client.renderer.RocketEntityRenderer;
 import com.amaro.stellarodyssey.client.renderer.StarshipEntityRenderer;
 import com.amaro.stellarodyssey.client.screen.AssemblyTableScreen;
+import com.amaro.stellarodyssey.network.FlightPhasePayload;
+import com.amaro.stellarodyssey.network.ModNetworking;
+import com.amaro.stellarodyssey.network.OxygenSyncPayload;
 import com.amaro.stellarodyssey.registry.ModEntities;
+import com.amaro.stellarodyssey.satellites.starmap.StarMapSatellite;
+import com.amaro.stellarodyssey.satellites.starmap.screen.StarMapScreen;
 import com.amaro.stellarodyssey.registry.ModMenuTypes;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.registry.client.gui.MenuScreenRegistry;
@@ -22,10 +27,25 @@ import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
  * NeoForge {@code Dist.CLIENT} mod class).
  */
 public final class StellarOdysseyClient {
+    private static boolean initialized;
+
     private StellarOdysseyClient() {
     }
 
-    public static void init() {
+    public static synchronized void init() {
+        if (initialized) {
+            return;
+        }
+
+        ModNetworking.registerClientHandlers(
+                payload -> ClientOxygenData.set(payload.oxygen(), payload.maxOxygen(), payload.inHazard()),
+                payload -> ClientRocketFlightHandler.handleFlightPhase(
+                        payload.entityId(), payload.phase(), payload.phaseTicks())
+        );
+        StarMapSatellite.registerScreenOpener((catalog, rocketTier, rocketEntityId) ->
+                net.minecraft.client.Minecraft.getInstance().setScreenAndShow(
+                        new StarMapScreen(catalog, rocketTier, rocketEntityId)));
+
         ClientGuiEvent.RENDER_HUD.register(OxygenHudOverlay::render);
         ClientGuiEvent.RENDER_HUD.register(LaunchCinematicOverlay::render);
 
@@ -47,5 +67,6 @@ public final class StellarOdysseyClient {
         );
 
         StellarOdyssey.clientInit();
+        initialized = true;
     }
 }

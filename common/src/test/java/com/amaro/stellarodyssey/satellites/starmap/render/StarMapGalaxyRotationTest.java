@@ -84,6 +84,21 @@ class StarMapGalaxyRotationTest {
     }
 
     @Test
+    @DisplayName("Orbital coordinates interpolate smoothly between whole ticks")
+    void orbitalCoordinatesInterpolateBetweenTicks() {
+        ICelestialBodyStub body = new ICelestialBodyStub();
+        StarMapSkyRenderer.SectorCoordinates first = StarMapSkyRenderer.getCoordinates(body, 10.0);
+        StarMapSkyRenderer.SectorCoordinates halfway = StarMapSkyRenderer.getCoordinates(body, 10.5);
+        StarMapSkyRenderer.SectorCoordinates next = StarMapSkyRenderer.getCoordinates(body, 11.0);
+
+        assertEquals(first.sectorCode(), halfway.sectorCode(), "sector identity must not vary with animation time");
+        assertEquals(first.sectorCode(), next.sectorCode(), "sector identity must not vary with animation time");
+        assertTrue(Math.abs(halfway.x() - first.x()) < Math.abs(next.x() - first.x())
+                        || Math.abs(halfway.z() - first.z()) < Math.abs(next.z() - first.z()),
+                "sub-tick coordinates should interpolate rather than jump to the next tick");
+    }
+
+    @Test
     @DisplayName("The projector is fully deterministic: equal inputs yield equal outputs")
     void projectorIsDeterministic() {
         StarMapSkyRenderer.ProjectedPoint a = StarMapSkyRenderer.project(

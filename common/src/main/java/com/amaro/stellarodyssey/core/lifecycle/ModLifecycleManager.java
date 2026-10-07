@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
 /**
@@ -41,19 +42,28 @@ public final class ModLifecycleManager {
      * ({@link ServiceLoader}). Handles duplicate modules idempotently.
      */
     public static synchronized void discoverModules() {
-        discovered = true;
+        if (discovered) {
+            return;
+        }
+
         try {
             ServiceLoader<SatelliteModule> loader = ServiceLoader.load(
                     SatelliteModule.class,
                     ModLifecycleManager.class.getClassLoader()
             );
             for (SatelliteModule module : loader) {
-                if (module != null && !hasModule(module.getId())) {
-                    registerModule(module);
+                if (module != null) {
+                    try {
+                        registerModule(module);
+                    } catch (RuntimeException e) {
+                        ModConstants.LOGGER.error("Failed to register discovered satellite module", e);
+                    }
                 }
             }
-        } catch (Throwable t) {
-            ModConstants.LOGGER.error("Failed to discover satellite modules via SPI", t);
+        } catch (ServiceConfigurationError | RuntimeException e) {
+            ModConstants.LOGGER.error("Failed to discover satellite modules via SPI", e);
+        } finally {
+            discovered = true;
         }
     }
 
@@ -65,17 +75,21 @@ public final class ModLifecycleManager {
      */
     public static synchronized void registerModule(SatelliteModule module) {
         Objects.requireNonNull(module, "SatelliteModule cannot be null");
-        if (hasModule(module.getId())) {
-            Optional<SatelliteModule> existing = getModule(module.getId());
+        String moduleId = Objects.requireNonNull(module.getId(), "SatelliteModule ID cannot be null");
+        if (moduleId.isBlank()) {
+            throw new IllegalArgumentException("SatelliteModule ID cannot be blank");
+        }
+        if (hasModule(moduleId)) {
+            Optional<SatelliteModule> existing = getModule(moduleId);
             if (existing.isPresent() && existing.get() == module) {
                 return; // Idempotent: exact same instance already registered
             }
-            ModConstants.LOGGER.warn("Overwriting or replacing previously registered satellite module: {}", module.getId());
-            MODULES.removeIf(m -> m.getId().equals(module.getId()));
+            ModConstants.LOGGER.warn("Overwriting or replacing previously registered satellite module: {}", moduleId);
+            MODULES.removeIf(m -> m.getId().equals(moduleId));
         }
         MODULES.add(module);
         MODULES.sort(MODULE_COMPARATOR);
-        ModConstants.LOGGER.info("Registered satellite module: {} (priority={})", module.getId(), module.getPriority());
+        ModConstants.LOGGER.info("Registered satellite module: {} (priority={})", moduleId, module.getPriority());
     }
 
     /**
@@ -97,20 +111,20 @@ public final class ModLifecycleManager {
         }
 
         for (SatelliteModule module : modulesSnapshot) {
-            if (!module.isEnabled()) {
-                ModConstants.LOGGER.debug("Skipping disabled satellite module: {}", module.getId());
-                continue;
-            }
-
             try {
+                if (!module.isEnabled()) {
+                    ModConstants.LOGGER.debug("Skipping disabled satellite module: {}", module.getId());
+                    continue;
+                }
+
                 switch (stage) {
                     case REGISTRY -> module.onRegister();
                     case COMMON_SETUP -> module.onCommonSetup();
                     case CLIENT_SETUP -> module.onClientSetup();
                     case SERVER_STARTING -> module.onServerStarting();
                 }
-            } catch (Throwable t) {
-                ModConstants.LOGGER.error("Error executing lifecycle stage {} on module '{}'", stage, module.getId(), t);
+            } catch (RuntimeException e) {
+                ModConstants.LOGGER.error("Error executing lifecycle stage {} on module '{}'", stage, module.getId(), e);
             }
         }
     }

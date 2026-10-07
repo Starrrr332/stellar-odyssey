@@ -24,6 +24,7 @@ public class StarMapCoordinatesWidget extends AbstractWidget {
     private String sectorCode = "SEC-00-PRIME";
     private boolean expanded = true;
     private int displayMode = 0; // 0: Comprehensive Telemetry, 1: Hazard Analysis, 2: Orbital Physics
+    private float animation;
 
     public StarMapCoordinatesWidget(int x, int y, int width, int height) {
         super(x, y, width, height, Component.literal("Galactic Telemetry & Hazard Monitor"));
@@ -83,12 +84,14 @@ public class StarMapCoordinatesWidget extends AbstractWidget {
             return;
         }
 
+        float target = this.expanded ? 1.0F : 0.0F;
+        this.animation += (target - this.animation) * 0.24F;
         Minecraft mc = Minecraft.getInstance();
         Font font = mc.font;
         int x = getX();
         int y = getY();
         int w = getWidth();
-        int h = this.expanded ? getHeight() : 24;
+        int h = Math.max(24, Math.round(24.0F + (getHeight() - 24.0F) * this.animation));
 
         // 1. Translucent sci-fi background panel
         gui.fill(x, y, x + w, y + h, 0xD0070D1A);
@@ -108,24 +111,32 @@ public class StarMapCoordinatesWidget extends AbstractWidget {
         String modeBadge = this.expanded ? ("[M" + (this.displayMode + 1) + "]") : "[+]";
         gui.text(font, Component.literal(modeBadge), x + w - font.width(modeBadge) - 6, y + 5, 0xFF80DEEA);
 
-        if (!this.expanded) {
+        if (this.animation < 0.08F) {
             return;
         }
 
         int lineY = y + 20;
+        int contentBottom = y + h - 12;
+        int contentAlpha = Math.round(255.0F * this.animation);
 
         // 4. Sector Coordinates Matrix
         String coordText = String.format("X: %+.1f | Y: %+.1f | Z: %+.1f ly", this.sectorX, this.sectorY, this.sectorZ);
-        gui.text(font, Component.literal(coordText), x + 7, lineY, 0xFFECEFF1);
+        if (lineY + 9 <= contentBottom) {
+            gui.text(font, Component.literal(coordText), x + 7, lineY, 0xFFECEFF1);
+        }
         lineY += 12;
 
-        gui.fill(x + 7, lineY, x + w - 7, lineY + 1, 0x3000E5FF);
+        if (lineY + 1 <= contentBottom) {
+            gui.fill(x + 7, lineY, x + w - 7, lineY + 1, 0x3000E5FF);
+        }
         lineY += 5;
 
         // 5. Planetary Hazard & Environmental Metrics
         if (this.targetBody != null) {
             String nameStr = "TARGET: " + this.targetBody.name().toUpperCase() + " [" + this.targetBody.starSystemName() + "]";
-            gui.text(font, Component.literal(nameStr), x + 7, lineY, 0xFF80D8FF);
+            if (lineY + 9 <= contentBottom) {
+                gui.text(font, Component.literal(nameStr), x + 7, lineY, (contentAlpha << 24) | 0x0080D8FF);
+            }
             lineY += 13;
 
             // Hazard Assessment
@@ -148,48 +159,67 @@ public class StarMapCoordinatesWidget extends AbstractWidget {
                 hazardColor = 0xFF00E676;
             }
 
-            gui.text(font, Component.literal(hazardClass), x + 7, lineY, hazardColor);
+            if (lineY + 9 <= contentBottom) {
+                gui.text(font, Component.literal(hazardClass), x + 7, lineY, (contentAlpha << 24) | (hazardColor & 0x00FFFFFF));
+            }
             lineY += 14;
 
             // Telemetry bars based on mode
             if (this.displayMode == 0 || this.displayMode == 1) {
                 // Radiation Meter
                 String radLabel = String.format("RAD: %.2f rad %s", rad, rad > 1.5F ? "[CRITICAL]" : "[NOMINAL]");
-                gui.text(font, Component.literal(radLabel), x + 7, lineY, 0xFFB0BEC5);
-                renderMiniBar(gui, x + w - 65, lineY + 1, 58, 6, Math.min(1.0F, rad / 3.0F), rad > 1.5F ? 0xFFFF1744 : 0xFF00E5FF);
+                if (lineY + 8 <= contentBottom) {
+                    gui.text(font, Component.literal(radLabel), x + 7, lineY, (contentAlpha << 24) | 0x00B0BEC5);
+                    renderMiniBar(gui, x + w - 65, lineY + 1, 58, 6, Math.min(1.0F, rad / 3.0F), rad > 1.5F ? 0xFFFF1744 : 0xFF00E5FF);
+                }
                 lineY += 12;
 
                 // Atmospheric Pressure Meter
                 String pressLabel = String.format("ATM: %.2f atm %s", pressure, this.targetBody.isVacuum() ? "[VACUUM]" : (pressure > 3.0F ? "[CRUSHING]" : "[STABLE]"));
-                gui.text(font, Component.literal(pressLabel), x + 7, lineY, 0xFFB0BEC5);
-                renderMiniBar(gui, x + w - 65, lineY + 1, 58, 6, Math.min(1.0F, pressure / 4.0F), pressure < 0.2F ? 0xFFFF5252 : 0xFF00E5FF);
+                if (lineY + 8 <= contentBottom) {
+                    gui.text(font, Component.literal(pressLabel), x + 7, lineY, (contentAlpha << 24) | 0x00B0BEC5);
+                    renderMiniBar(gui, x + w - 65, lineY + 1, 58, 6, Math.min(1.0F, pressure / 4.0F), pressure < 0.2F ? 0xFFFF5252 : 0xFF00E5FF);
+                }
                 lineY += 12;
             }
 
             if (this.displayMode == 0 || this.displayMode == 2) {
                 // Gravity Meter
                 String gravLabel = String.format("GRAV: %.2fg %s", grav, grav < 0.8 ? "[LOW-G]" : (grav > 1.5 ? "[HEAVY-G]" : "[STD]"));
-                gui.text(font, Component.literal(gravLabel), x + 7, lineY, 0xFFB0BEC5);
-                renderMiniBar(gui, x + w - 65, lineY + 1, 58, 6, (float) Math.min(1.0, grav / 2.5), 0xFF00E5FF);
+                if (lineY + 8 <= contentBottom) {
+                    gui.text(font, Component.literal(gravLabel), x + 7, lineY, (contentAlpha << 24) | 0x00B0BEC5);
+                    renderMiniBar(gui, x + w - 65, lineY + 1, 58, 6, (float) Math.min(1.0, grav / 2.5), 0xFF00E5FF);
+                }
                 lineY += 12;
 
                 // Respiration status
                 String respStr = breathable ? "● BREATHABLE ATMOSPHERE" : "⚠ SEALED SUIT REQUIRED";
                 int respColor = breathable ? 0xFF00E676 : 0xFFFF5252;
-                gui.text(font, Component.literal(respStr), x + 7, lineY, respColor);
+                if (lineY + 9 <= contentBottom) {
+                    gui.text(font, Component.literal(respStr), x + 7, lineY, (contentAlpha << 24) | (respColor & 0x00FFFFFF));
+                }
                 lineY += 12;
             }
         } else {
-            gui.text(font, Component.literal("STATUS: SECTOR SCANNING..."), x + 7, lineY, 0xFF78909C);
+            if (lineY + 9 <= contentBottom) {
+                gui.text(font, Component.literal("STATUS: SECTOR SCANNING..."), x + 7, lineY, 0xFF78909C);
+            }
             lineY += 14;
-            gui.text(font, Component.literal("NO CELESTIAL TARGET LOCKED"), x + 7, lineY, 0xFF546E7A);
+            if (lineY + 9 <= contentBottom) {
+                gui.text(font, Component.literal("NO CELESTIAL TARGET LOCKED"), x + 7, lineY, 0xFF546E7A);
+            }
             lineY += 12;
-            gui.text(font, Component.literal("SELECT PLANET TO ANALYZE HAZARD"), x + 7, lineY, 0xFF37474F);
+            if (lineY + 9 <= contentBottom) {
+                gui.text(font, Component.literal("SELECT PLANET TO ANALYZE HAZARD"), x + 7, lineY, 0xFF37474F);
+            }
             lineY += 12;
         }
 
         // Bottom hint
-        gui.text(font, Component.literal("◄ CLICK TO CYCLE / DBL-CLICK COLLAPSE ►"), x + 7, y + h - 11, 0xFF455A64);
+        if (this.animation > 0.9F) {
+            gui.text(font, Component.literal("◄ CLICK TO CYCLE / DBL-CLICK COLLAPSE ►"), x + 7, y + h - 11,
+                    (contentAlpha << 24) | 0x00455A64);
+        }
     }
 
     private void renderMiniBar(GuiGraphicsExtractor gui, int bx, int by, int bw, int bh, float fraction, int fillColor) {

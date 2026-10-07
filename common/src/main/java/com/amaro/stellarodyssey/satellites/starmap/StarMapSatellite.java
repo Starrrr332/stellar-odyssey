@@ -4,11 +4,10 @@ import com.amaro.stellarodyssey.api.SatelliteModule;
 import com.amaro.stellarodyssey.api.celestial.ICelestialCatalog;
 import com.amaro.stellarodyssey.core.ModConstants;
 import com.amaro.stellarodyssey.core.lifecycle.ModLifecycleManager;
-import com.amaro.stellarodyssey.satellites.starmap.screen.StarMapScreen;
 import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
-import dev.architectury.utils.EnvExecutor;
-import net.minecraft.client.Minecraft;
+
+import java.util.Objects;
 
 /**
  * Intergalactic Star Map Navigation Satellite Module for Stellar Odyssey.
@@ -26,7 +25,13 @@ public final class StarMapSatellite implements SatelliteModule {
     public static final StarMapSatellite INSTANCE = new StarMapSatellite();
 
     private static ICelestialCatalog activeCatalog;
+    private static volatile ScreenOpener screenOpener;
     private static boolean clientInitialized = false;
+
+    @FunctionalInterface
+    public interface ScreenOpener {
+        void open(ICelestialCatalog catalog, int rocketTier, int rocketEntityId);
+    }
 
     public StarMapSatellite() {
     }
@@ -70,6 +75,7 @@ public final class StarMapSatellite implements SatelliteModule {
 
     @Override
     public void onCommonSetup() {
+        setActiveCatalog(com.amaro.stellarodyssey.world.CelestialBodyRegistry.INSTANCE);
         ModConstants.LOGGER.info("StarMapSatellite: common setup complete. Celestial navigation satellite active.");
     }
 
@@ -83,14 +89,29 @@ public final class StarMapSatellite implements SatelliteModule {
             return;
         }
 
-        EnvExecutor.runInEnv(Env.CLIENT, () -> StarMapClientHandler::setup);
-        clientInitialized = true;
-        ModConstants.LOGGER.info("StarMapSatellite: physical client setup completed successfully.");
+        clientInitialized = screenOpener != null;
+        if (clientInitialized) {
+            ModConstants.LOGGER.info("StarMapSatellite: physical client setup completed successfully.");
+        } else {
+            ModConstants.LOGGER.warn("StarMapSatellite: client screen opener was not registered; star map will remain unavailable.");
+        }
     }
 
     @Override
     public void onServerStarting() {
         ModConstants.LOGGER.debug("StarMapSatellite: server starting hook acknowledged.");
+    }
+
+    /**
+     * Installs the screen factory from the client entrypoint without linking common code to Minecraft client classes.
+     *
+     * @param opener Client-side screen opener.
+     */
+    public static void registerScreenOpener(ScreenOpener opener) {
+        if (Platform.getEnvironment() != Env.CLIENT) {
+            throw new IllegalStateException("Star map screen opener can only be registered on the physical client");
+        }
+        screenOpener = Objects.requireNonNull(opener, "opener cannot be null");
     }
 
     /**
@@ -145,23 +166,11 @@ public final class StarMapSatellite implements SatelliteModule {
         }
 
         ICelestialCatalog cat = catalog != null ? catalog : activeCatalog;
-        EnvExecutor.runInEnv(Env.CLIENT, () -> () -> StarMapClientHandler.openScreen(cat, rocketTier, rocketEntityId));
-    }
-
-    /**
-     * Isolated static inner client handler ensuring no client classes are loaded on dedicated servers.
-     */
-    private static final class StarMapClientHandler {
-        static void setup() {
-            ModConstants.LOGGER.debug("StarMapClientHandler: client rendering components ready.");
+        ScreenOpener opener = screenOpener;
+        if (opener == null) {
+            ModConstants.LOGGER.warn("Attempted to open StarMapScreen before the client screen opener was initialized.");
+            return;
         }
-
-        static void openScreen(ICelestialCatalog catalog) {
-            openScreen(catalog, 0, -1);
-        }
-
-        static void openScreen(ICelestialCatalog catalog, int rocketTier, int rocketEntityId) {
-            Minecraft.getInstance().setScreenAndShow(new StarMapScreen(catalog, rocketTier, rocketEntityId));
-        }
+        opener.open(cat, rocketTier, rocketEntityId);
     }
 }

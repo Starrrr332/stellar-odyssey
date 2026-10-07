@@ -66,6 +66,10 @@ public final class StarMapSkyRenderer {
     private static final float[] NEBULA_ANGULAR_OFFSET = new float[NEBULA_KNOT_COUNT];
     private static final float[] NEBULA_RADIUS = new float[NEBULA_KNOT_COUNT];
     private static final int[] NEBULA_COLORS = new int[NEBULA_KNOT_COUNT];
+    private static final int[] BULGE_RADII = {28, 20, 14, 8, 4};
+    private static final int[] BULGE_ALPHAS = {14, 24, 38, 65, 110};
+    private static final int[] BULGE_COLORS = {0x00FFD54F, 0x00FFE082, 0x00FFF9C4, 0x00FFFFFF, 0x00FFFFFF};
+    private static final int[] GRID_RING_RADII = {50, 100, 150, 200, 250};
 
     static {
         Random rng = new Random(42L);
@@ -191,37 +195,57 @@ public final class StarMapSkyRenderer {
      * @return Dynamic sector coordinates in light-years.
      */
     public static SectorCoordinates getCoordinates(ICelestialBody body, long tickCount) {
+        return getCoordinates(body, (double) tickCount);
+    }
+
+    /** Smoothly propagated coordinates for sub-tick rendering interpolation. */
+    public static SectorCoordinates getCoordinates(ICelestialBody body, double tickCount) {
         if (body == null || body.dimensionKey() == null) {
             return new SectorCoordinates(0.0, 0.0, 0.0, "SEC-00-SOL");
         }
 
         String systemName = body.starSystemName() != null ? body.starSystemName() : "SOL";
-        long systemHash = (long) systemName.hashCode();
-        Random sysRng = new Random(systemHash);
-        double sysX = (sysRng.nextDouble() - 0.5) * 440.0;
-        double sysY = (sysRng.nextDouble() - 0.5) * 40.0;
-        double sysZ = (sysRng.nextDouble() - 0.5) * 440.0;
+        long systemHash = systemName.hashCode();
+        double sysX = (unitHash(systemHash) - 0.5) * 440.0;
+        double sysY = (unitHash(systemHash + 0x9E3779B97F4A7C15L) - 0.5) * 40.0;
+        double sysZ = (unitHash(systemHash + 0x3C6EF372FE94F82AL) - 0.5) * 440.0;
 
         long bodyHash = (long) body.dimensionKey().identifier().hashCode() ^ (systemHash << 16);
-        Random bodyRng = new Random(bodyHash);
-
-        // Orbital radius around host star (20 to 65 light-years in sector coordinates)
-        double orbitRadius = 18.0 + bodyRng.nextDouble() * 45.0;
-        // Keplerian-like orbital velocity: closer bodies orbit faster
+        double orbitRadius = 18.0 + unitHash(bodyHash) * 45.0;
         double orbitSpeed = 0.0035 + (50.0 / Math.max(10.0, orbitRadius)) * 0.002;
-        double initialPhase = bodyRng.nextDouble() * Math.PI * 2.0;
+        double initialPhase = unitHash(bodyHash + 0x9E3779B97F4A7C15L) * Math.PI * 2.0;
         double currentAngle = initialPhase + (tickCount * orbitSpeed);
 
         double posX = sysX + Math.cos(currentAngle) * orbitRadius;
-        double posY = sysY + Math.sin(currentAngle) * (orbitRadius * 0.12); // subtle inclination
+        double posY = sysY + Math.sin(currentAngle) * (orbitRadius * 0.12);
         double posZ = sysZ + Math.sin(currentAngle) * orbitRadius;
 
-        String systemClean = systemName.replaceAll("[^A-Za-z0-9]", "");
+        String systemClean = alphanumericPrefix(systemName);
         String prefix = systemClean.length() >= 3 ? systemClean.substring(0, 3).toUpperCase() : "SEC";
-        int sectorNum = Math.abs((int) (bodyHash % 100));
-        String code = String.format("%s-%02d", prefix, sectorNum);
+        int sectorNum = (int) Math.floorMod(bodyHash, 100L);
+        String code = prefix + "-" + (sectorNum < 10 ? "0" : "") + sectorNum;
 
         return new SectorCoordinates(posX, posY, posZ, code);
+    }
+
+    private static double unitHash(long value) {
+        value ^= value >>> 30;
+        value *= 0xBF58476D1CE4E5B9L;
+        value ^= value >>> 27;
+        value *= 0x94D049BB133111EBL;
+        value ^= value >>> 31;
+        return (value >>> 11) * 0x1.0p-53;
+    }
+
+    private static String alphanumericPrefix(String value) {
+        StringBuilder prefix = new StringBuilder(3);
+        for (int i = 0; i < value.length() && prefix.length() < 3; i++) {
+            char c = value.charAt(i);
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
+                prefix.append(c);
+            }
+        }
+        return prefix.toString();
     }
 
     /**
@@ -287,6 +311,11 @@ public final class StarMapSkyRenderer {
      */
     public static void renderDeepSpaceBackground(GuiGraphicsExtractor gui, int width, int height,
                                                  double panX, double panY, float zoom, long tickCount) {
+        renderDeepSpaceBackground(gui, width, height, panX, panY, zoom, (double) tickCount);
+    }
+
+    public static void renderDeepSpaceBackground(GuiGraphicsExtractor gui, int width, int height,
+                                                 double panX, double panY, float zoom, double tickCount) {
         // 1. Deep space obsidian canvas
         gui.fillGradient(0, 0, width, height, 0xFF040711, 0xFF010206);
 
@@ -337,6 +366,11 @@ public final class StarMapSkyRenderer {
      */
     public static void renderSpiralGalaxy(GuiGraphicsExtractor gui, int width, int height,
                                           double panX, double panY, float zoom, long tickCount) {
+        renderSpiralGalaxy(gui, width, height, panX, panY, zoom, (double) tickCount);
+    }
+
+    public static void renderSpiralGalaxy(GuiGraphicsExtractor gui, int width, int height,
+                                          double panX, double panY, float zoom, double tickCount) {
         // Parallax factor: distant galaxy shifts subtly with viewport pan for great depth
         float cx = (float) (width * 0.5F + panX * 0.32);
         float cy = (float) (height * 0.44F + panY * 0.32);
@@ -344,17 +378,14 @@ public final class StarMapSkyRenderer {
         // Macro-to-micro scale factor based on screen size and zoom
         float baseScale = Math.min(width, height) * 0.0035F;
         float scale = baseScale * (0.75F + 0.25F * zoom);
-        float rotation = tickCount * 0.015F;
+        float rotation = (float) (tickCount * 0.015F);
 
         // 1. Galactic Core Bulge (luminous supermassive central cluster)
-        int[] bulgeRadii = {28, 20, 14, 8, 4};
-        int[] bulgeAlphas = {14, 24, 38, 65, 110};
-        int[] bulgeColors = {0x00FFD54F, 0x00FFE082, 0x00FFF9C4, 0x00FFFFFF, 0x00FFFFFF};
-        for (int b = 0; b < bulgeRadii.length; b++) {
-            float r = bulgeRadii[b] * scale;
+        for (int b = 0; b < BULGE_RADII.length; b++) {
+            float r = BULGE_RADII[b] * scale;
             int rx = (int) r;
             int ry = (int) (r * 0.48F); // tilted galactic plane disk
-            int color = (bulgeAlphas[b] << 24) | bulgeColors[b];
+            int color = (BULGE_ALPHAS[b] << 24) | BULGE_COLORS[b];
             gui.fill((int) (cx - rx), (int) (cy - ry), (int) (cx + rx + 1), (int) (cy + ry + 1), color);
         }
 
@@ -416,13 +447,13 @@ public final class StarMapSkyRenderer {
             // Scintillation / twinkle wave
             float twinkle = 0.65F + 0.35F * (float) Math.sin(tickCount * (0.04F + radialT * 0.05F) + i);
             int alpha = (int) Math.clamp(110.0F * (1.0F - radialT * 0.5F) * twinkle, 25.0F, 230.0F);
-            int color = (alpha << 24) | GALAXY_STAR_COLORS[i];
+            int color = (alpha << 24) | (GALAXY_STAR_COLORS[i] & 0x00FFFFFF);
 
             gui.fill(sx, sy, sx + 1, sy + 1, color);
 
             // Major stellar knot / bright star spike
             if (GALAXY_STAR_MAJOR[i]) {
-                int glowColor = (Math.clamp(alpha / 3, 15, 120) << 24) | GALAXY_STAR_COLORS[i];
+                int glowColor = (Math.clamp(alpha / 3, 15, 120) << 24) | (GALAXY_STAR_COLORS[i] & 0x00FFFFFF);
                 gui.fill(sx - 1, sy, sx + 2, sy + 1, glowColor);
                 gui.fill(sx, sy - 1, sx + 1, sy + 2, glowColor);
             }
@@ -461,8 +492,7 @@ public final class StarMapSkyRenderer {
         }
 
         // Concentric sector range rings (50 ly, 100 ly, 150 ly, 200 ly, 250 ly)
-        int[] ringRadii = {50, 100, 150, 200, 250};
-        for (int r : ringRadii) {
+        for (int r : GRID_RING_RADII) {
             double scaledR = r * zoom;
             if (scaledR > 12 && scaledR < Math.max(width, height) * 1.6) {
                 renderOrbitRing(gui, centerX, centerY, scaledR, scaledR * 0.72, 0x2200E5FF, 36);
@@ -504,10 +534,15 @@ public final class StarMapSkyRenderer {
      */
     public static void renderHyperspaceLane(GuiGraphicsExtractor gui, double x1, double y1,
                                             double x2, double y2, int color, long tickCount) {
+        renderHyperspaceLane(gui, x1, y1, x2, y2, color, (double) tickCount);
+    }
+
+    public static void renderHyperspaceLane(GuiGraphicsExtractor gui, double x1, double y1,
+                                            double x2, double y2, int color, double tickCount) {
         drawLine(gui, (int) x1, (int) y1, (int) x2, (int) y2, color);
 
-        // Animated pulse packet traveling along the lane
-        double progress = (tickCount % 60) / 60.0;
+        // Animated pulse packet traveling smoothly along the lane
+        double progress = (tickCount % 60.0) / 60.0;
         double px = x1 + (x2 - x1) * progress;
         double py = y1 + (y2 - y1) * progress;
         gui.fill((int) px - 2, (int) py - 2, (int) px + 3, (int) py + 3, 0xFFFFFFFF);
@@ -539,6 +574,15 @@ public final class StarMapSkyRenderer {
                                            ICelestialBody body,
                                            boolean selected, boolean hovered,
                                            long tickCount,
+                                           int rocketTier) {
+        renderCelestialNode(gui, font, sx, sy, body, selected, hovered, (double) tickCount, rocketTier);
+    }
+
+    public static void renderCelestialNode(GuiGraphicsExtractor gui, Font font,
+                                           double sx, double sy,
+                                           ICelestialBody body,
+                                           boolean selected, boolean hovered,
+                                           double tickCount,
                                            int rocketTier) {
         int ix = (int) sx;
         int iy = (int) sy;
@@ -605,7 +649,7 @@ public final class StarMapSkyRenderer {
         // 7. Selected targeting reticle brackets
         if (selected) {
             int bracketSize = 13;
-            int reticleColor = (tickCount % 20 < 10) ? 0xFF00E5FF : 0xFFFFFFFF;
+            int reticleColor = (Math.sin(tickCount * 0.16) > 0.0) ? 0xFF00E5FF : 0xFFFFFFFF;
             // Top-left
             gui.fill(ix - bracketSize, iy - bracketSize, ix - bracketSize + 4, iy - bracketSize + 1, reticleColor);
             gui.fill(ix - bracketSize, iy - bracketSize, ix - bracketSize + 1, iy - bracketSize + 4, reticleColor);
@@ -650,7 +694,7 @@ public final class StarMapSkyRenderer {
 
         // 10. Environmental hazard badge
         if (body.isHazardous()) {
-            boolean pulse = (tickCount / 15) % 2 == 0;
+            boolean pulse = Math.sin(tickCount * 0.20) > 0.0;
             int badgeColor = pulse ? 0xFFFF1744 : 0xFFFF8A80;
             gui.text(font, Component.literal("⚠"), ix - radius - 11, iy - 4, badgeColor);
         }
