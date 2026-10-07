@@ -36,6 +36,19 @@ public final class CelestialBodyRegistry implements ICelestialCatalog {
             String description,
             double surfaceTemperatureKelvin
     ) implements ICelestialBody {
+        public static final com.mojang.serialization.Codec<PlanetaryBody> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.create(instance ->
+                instance.group(
+                        ResourceKey.codec(Registries.DIMENSION).fieldOf("dimension").forGetter(PlanetaryBody::dimensionKey),
+                        com.mojang.serialization.Codec.DOUBLE.optionalFieldOf("gravity", 1.0).forGetter(PlanetaryBody::gravityMultiplier),
+                        com.mojang.serialization.Codec.FLOAT.optionalFieldOf("pressure", 1.0f).forGetter(PlanetaryBody::atmosphericPressure),
+                        com.mojang.serialization.Codec.BOOL.optionalFieldOf("breathable", false).forGetter(PlanetaryBody::hasBreathableAtmosphere),
+                        com.mojang.serialization.Codec.FLOAT.optionalFieldOf("radiation", 1.0f).forGetter(PlanetaryBody::solarRadiation),
+                        com.mojang.serialization.Codec.STRING.optionalFieldOf("star_system", "Sol").forGetter(PlanetaryBody::starSystemName),
+                        com.mojang.serialization.Codec.STRING.optionalFieldOf("description", "").forGetter(PlanetaryBody::description),
+                        com.mojang.serialization.Codec.DOUBLE.optionalFieldOf("temperature_kelvin", 288.0).forGetter(PlanetaryBody::surfaceTemperatureKelvin)
+                ).apply(instance, PlanetaryBody::new)
+        );
+
         public PlanetaryBody {
             Objects.requireNonNull(dimensionKey, "dimensionKey cannot be null");
             Objects.requireNonNull(starSystemName, "starSystemName cannot be null");

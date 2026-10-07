@@ -1,0 +1,10 @@
+{
+  "dimension": "stellarodyssey:nexus_moon",
+  "gravity": 0.16,
+  "pressure": 0.00,
+  "breathable": false,
+  "radiation": 3.20,
+  "star_system": "Alpha Centauri",
+  "description": "Airless low-gravity orbital moon covered in impact craters and rich meteoric iron.",
+  "temperature_kelvin": 110.0
+}

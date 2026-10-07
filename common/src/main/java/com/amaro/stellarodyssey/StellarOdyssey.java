@@ -43,7 +43,10 @@ public final class StellarOdyssey {
         ModLifecycleManager.fireStage(ModLifecycleStage.COMMON_SETUP);
 
         if (!serverStartingHookRegistered) {
-            LifecycleEvent.SERVER_STARTING.register(server -> serverStarting());
+            LifecycleEvent.SERVER_STARTING.register(server -> {
+                registerReloadListener(server);
+                serverStarting();
+            });
             serverStartingHookRegistered = true;
         }
 
@@ -59,6 +62,13 @@ public final class StellarOdyssey {
     /** Dispatches server starting to all registered satellite modules. */
     public static void serverStarting() {
         ModLifecycleManager.fireStage(ModLifecycleStage.SERVER_STARTING);
+    }
+
+    public static void registerReloadListener(net.minecraft.server.MinecraftServer server) {
+        if (server != null && server.getResourceManager() instanceof net.minecraft.server.packs.resources.ReloadableResourceManager reloadable) {
+            reloadable.registerReloadListener(new com.amaro.stellarodyssey.world.CelestialBodyDataLoader());
+            LOGGER.info("Stellar Odyssey: Registered data-driven CelestialBodyDataLoader.");
+        }
     }
 
     /** {@code stellarodyssey:<path>} */

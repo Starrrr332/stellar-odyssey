@@ -1,0 +1,10 @@
+{
+  "dimension": "stellarodyssey:gliese_deep",
+  "gravity": 1.35,
+  "pressure": 2.50,
+  "breathable": false,
+  "radiation": 0.80,
+  "star_system": "Gliese 667",
+  "description": "High-gravity terrestrial world featuring steep canyons and metamorphic alien stone strata.",
+  "temperature_kelvin": 315.0
+}

@@ -1,0 +1,10 @@
+{
+  "dimension": "stellarodyssey:exotic_prime",
+  "gravity": 0.75,
+  "pressure": 0.85,
+  "breathable": false,
+  "radiation": 1.10,
+  "star_system": "Kepler-452",
+  "description": "Super-Earth with bioluminescent xenomorphic turf and dense resonant ore clusters.",
+  "temperature_kelvin": 288.0
+}

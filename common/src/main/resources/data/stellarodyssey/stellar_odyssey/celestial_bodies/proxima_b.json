@@ -1,0 +1,10 @@
+{
+  "dimension": "stellarodyssey:proxima_b",
+  "gravity": 0.35,
+  "pressure": 0.15,
+  "breathable": false,
+  "radiation": 2.40,
+  "star_system": "Alpha Centauri",
+  "description": "Tidally locked rocky planet with flare radiation storms and crystalline mineral formations.",
+  "temperature_kelvin": 234.0
+}
